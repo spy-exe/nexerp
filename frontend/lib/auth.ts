@@ -58,6 +58,27 @@ export type StockBalance = {
   min_stock: string
 }
 
+export type BusinessParty = {
+  id: string
+  company_id: string
+  kind: "customer" | "supplier"
+  person_kind: "individual" | "company"
+  name: string
+  email?: string | null
+  phone?: string | null
+  document_number: string
+  state_registration?: string | null
+  municipal_registration?: string | null
+  address_zip?: string | null
+  address_state?: string | null
+  address_city?: string | null
+  address_street?: string | null
+  address_number?: string | null
+  address_neighborhood?: string | null
+  notes?: string | null
+  is_active: boolean
+}
+
 export async function register(payload: unknown) {
   return apiFetch<SessionPayload>("/auth/register", {
     method: "POST",
@@ -148,5 +169,53 @@ export async function createMovement(payload: unknown) {
   return apiFetch("/stock/movements", {
     method: "POST",
     body: JSON.stringify(payload)
+  })
+}
+
+export async function listCustomers() {
+  return apiFetch<BusinessParty[]>("/customers")
+}
+
+export async function createCustomer(payload: unknown) {
+  return apiFetch<BusinessParty>("/customers", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateCustomer(customerId: string, payload: unknown) {
+  return apiFetch<BusinessParty>(`/customers/${customerId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function archiveCustomer(customerId: string) {
+  return apiFetch<BusinessParty>(`/customers/${customerId}/archive`, {
+    method: "POST"
+  })
+}
+
+export async function listSuppliers() {
+  return apiFetch<BusinessParty[]>("/suppliers")
+}
+
+export async function createSupplier(payload: unknown) {
+  return apiFetch<BusinessParty>("/suppliers", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateSupplier(supplierId: string, payload: unknown) {
+  return apiFetch<BusinessParty>(`/suppliers/${supplierId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function archiveSupplier(supplierId: string) {
+  return apiFetch<BusinessParty>(`/suppliers/${supplierId}/archive`, {
+    method: "POST"
   })
 }

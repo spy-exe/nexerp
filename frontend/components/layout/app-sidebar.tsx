@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { Boxes, ChartColumn, LayoutDashboard, ListTree, Package, Settings2 } from "lucide-react"
+import { Boxes, ChartColumn, LayoutDashboard, ListTree, Package, Settings2, Truck, Users } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
 const items = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/customers", label: "Clientes", icon: Users },
+  { href: "/suppliers", label: "Fornecedores", icon: Truck },
   { href: "/products", label: "Produtos", icon: Package },
   { href: "/categories", label: "Categorias", icon: ListTree },
   { href: "/stock", label: "Estoque", icon: Boxes },

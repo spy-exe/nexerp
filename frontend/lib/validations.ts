@@ -77,3 +77,20 @@ export const movementSchema = z.object({
   quantity: z.coerce.number().gt(0, "Quantidade deve ser maior que zero."),
   notes: z.string().optional()
 })
+
+export const businessPartySchema = z.object({
+  person_kind: z.enum(["individual", "company"]),
+  name: z.string().min(2, "Nome obrigatório."),
+  email: z.union([z.string().email("Informe um e-mail válido."), z.literal("")]).optional(),
+  phone: z.string().optional(),
+  document_number: z.string().min(11, "Documento obrigatório."),
+  state_registration: z.string().optional(),
+  municipal_registration: z.string().optional(),
+  address_zip: z.string().optional(),
+  address_state: z.string().max(2, "Use a sigla do estado.").optional(),
+  address_city: z.string().optional(),
+  address_street: z.string().optional(),
+  address_number: z.string().optional(),
+  address_neighborhood: z.string().optional(),
+  notes: z.string().optional()
+})
