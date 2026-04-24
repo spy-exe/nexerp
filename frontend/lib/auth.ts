@@ -79,6 +79,103 @@ export type BusinessParty = {
   is_active: boolean
 }
 
+export type DashboardRankingItem = {
+  id: string
+  label: string
+  value: string
+}
+
+export type DashboardAlertItem = {
+  product_id: string
+  product_name: string
+  quantity: string
+  min_stock: string
+}
+
+export type DashboardOverview = {
+  revenue_today: string
+  revenue_month: string
+  purchases_month: string
+  average_ticket: string
+  sales_count_today: number
+  open_low_stock_alerts: number
+  top_products: DashboardRankingItem[]
+  top_customers: DashboardRankingItem[]
+  low_stock_alerts: DashboardAlertItem[]
+}
+
+export type SaleItem = {
+  id: string
+  product_id: string
+  product_name: string
+  product_sku: string
+  unit: string
+  quantity: string
+  unit_price: string
+  discount_amount: string
+  total_amount: string
+}
+
+export type SalePayment = {
+  id: string
+  method: "cash" | "card" | "pix" | "credit"
+  amount: string
+  note?: string | null
+}
+
+export type SaleSummary = {
+  id: string
+  company_id: string
+  sale_number: string
+  customer_id?: string | null
+  user_id: string
+  warehouse_id: string
+  status: string
+  channel: "sales" | "pos"
+  issued_at: string
+  subtotal: string
+  discount_amount: string
+  total_amount: string
+  change_amount: string
+  notes?: string | null
+  customer_name?: string | null
+}
+
+export type SaleDetail = SaleSummary & {
+  items: SaleItem[]
+  payments: SalePayment[]
+}
+
+export type PurchaseItem = {
+  id: string
+  product_id: string
+  product_name: string
+  product_sku: string
+  unit: string
+  quantity: string
+  unit_cost: string
+  total_cost: string
+}
+
+export type PurchaseSummary = {
+  id: string
+  company_id: string
+  purchase_number: string
+  supplier_id: string
+  user_id: string
+  warehouse_id: string
+  status: string
+  issued_at: string
+  subtotal: string
+  total_amount: string
+  notes?: string | null
+  supplier_name?: string | null
+}
+
+export type PurchaseDetail = PurchaseSummary & {
+  items: PurchaseItem[]
+}
+
 export async function register(payload: unknown) {
   return apiFetch<SessionPayload>("/auth/register", {
     method: "POST",
@@ -217,5 +314,39 @@ export async function updateSupplier(supplierId: string, payload: unknown) {
 export async function archiveSupplier(supplierId: string) {
   return apiFetch<BusinessParty>(`/suppliers/${supplierId}/archive`, {
     method: "POST"
+  })
+}
+
+export async function getDashboardOverview() {
+  return apiFetch<DashboardOverview>("/dashboard/overview")
+}
+
+export async function listSales() {
+  return apiFetch<SaleSummary[]>("/sales")
+}
+
+export async function getSale(saleId: string) {
+  return apiFetch<SaleDetail>(`/sales/${saleId}`)
+}
+
+export async function createSale(payload: unknown) {
+  return apiFetch<SaleDetail>("/sales", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function listPurchases() {
+  return apiFetch<PurchaseSummary[]>("/purchases")
+}
+
+export async function getPurchase(purchaseId: string) {
+  return apiFetch<PurchaseDetail>(`/purchases/${purchaseId}`)
+}
+
+export async function createPurchase(payload: unknown) {
+  return apiFetch<PurchaseDetail>("/purchases", {
+    method: "POST",
+    body: JSON.stringify(payload)
   })
 }
