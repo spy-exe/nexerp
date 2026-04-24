@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
@@ -14,7 +15,12 @@ import { resetPasswordSchema } from "@/lib/validations"
 
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>
 
-export default function ResetPasswordTokenPage({ params }: { params: { token: string } }) {
+type ResetPasswordTokenPageProps = {
+  params: Promise<{ token: string }>
+}
+
+export default function ResetPasswordTokenPage(props: ResetPasswordTokenPageProps) {
+  const params = use(props.params)
   const router = useRouter()
   const {
     register,
