@@ -82,6 +82,7 @@ SYSTEM_ROLES: dict[str, list[str]] = {
         "stock:read",
         "stock:adjust",
         "purchases:read",
+        "purchases:create",
     ],
     "Financeiro": [
         "company:read",

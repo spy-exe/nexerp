@@ -11,6 +11,8 @@ from app.models.base import ActivatableMixin, CompanyBoundMixin, TimestampMixin,
 
 if TYPE_CHECKING:
     from app.models.company import Company
+    from app.models.purchase import Purchase
+    from app.models.sale import Sale
 
 
 class PartyKind(str, Enum):
@@ -46,3 +48,5 @@ class BusinessParty(Base, UUIDPrimaryKeyMixin, TimestampMixin, CompanyBoundMixin
     notes: Mapped[str | None] = mapped_column(String(500))
 
     company: Mapped["Company"] = relationship(back_populates="business_parties")
+    sales: Mapped[list["Sale"]] = relationship(back_populates="customer", foreign_keys="Sale.customer_id")
+    purchases: Mapped[list["Purchase"]] = relationship(back_populates="supplier", foreign_keys="Purchase.supplier_id")

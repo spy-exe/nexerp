@@ -49,15 +49,43 @@ class StockService:
         payload: StockMovementCreate,
         ip_address: str | None,
     ) -> StockMovement:
-        warehouse = (
-            await self.get_default_warehouse(company_id)
-            if payload.warehouse_id is None
-            else await self._get_warehouse(company_id, UUID(payload.warehouse_id))
+        movement = await self.record_system_movement(
+            company_id=company_id,
+            user_id=user_id,
+            product_id=UUID(payload.product_id),
+            movement_type=payload.type,
+            quantity=payload.quantity,
+            warehouse_id=UUID(payload.warehouse_id) if payload.warehouse_id else None,
+            reference_id=payload.reference_id,
+            reference_type=payload.reference_type,
+            notes=payload.notes,
+            audit_action="stock.movement.created",
+            ip_address=ip_address,
         )
-        product = await self._get_product(company_id, UUID(payload.product_id))
+        await self.db.commit()
+        await self.db.refresh(movement)
+        return movement
+
+    async def record_system_movement(
+        self,
+        *,
+        company_id: UUID,
+        user_id: UUID,
+        product_id: UUID,
+        movement_type: str,
+        quantity: Decimal,
+        warehouse_id: UUID | None,
+        reference_id: str | None,
+        reference_type: str | None,
+        notes: str | None,
+        audit_action: str,
+        ip_address: str | None,
+    ) -> StockMovement:
+        warehouse = await self.get_default_warehouse(company_id) if warehouse_id is None else await self._get_warehouse(company_id, warehouse_id)
+        product = await self._get_product(company_id, product_id)
 
         balance = await self._get_or_create_balance(company_id, product.id, warehouse.id)
-        delta = self._calculate_delta(payload.type, payload.quantity)
+        delta = self._calculate_delta(movement_type, quantity)
         new_quantity = Decimal(balance.quantity) + delta
         if new_quantity < 0:
             raise HTTPException(
@@ -72,26 +100,32 @@ class StockService:
             product_id=product.id,
             warehouse_id=warehouse.id,
             user_id=user_id,
-            type=payload.type,
-            quantity=payload.quantity,
+            type=movement_type,
+            quantity=quantity,
             balance_after=new_quantity,
-            reference_id=payload.reference_id,
-            reference_type=payload.reference_type,
-            notes=payload.notes,
+            reference_id=reference_id,
+            reference_type=reference_type,
+            notes=notes,
         )
         self.db.add(movement)
         await self.db.flush()
         self.audit.log(
             company_id=company_id,
             user_id=user_id,
-            action="stock.movement.created",
+            action=audit_action,
             table_name="stock_movements",
             record_id=str(movement.id),
-            new_data=payload.model_dump(mode="json") | {"balance_after": str(new_quantity)},
+            new_data={
+                "product_id": str(product.id),
+                "warehouse_id": str(warehouse.id),
+                "type": movement_type,
+                "quantity": str(quantity),
+                "reference_id": reference_id,
+                "reference_type": reference_type,
+                "balance_after": str(new_quantity),
+            },
             ip_address=ip_address,
         )
-        await self.db.commit()
-        await self.db.refresh(movement)
         return movement
 
     async def _get_product(self, company_id: UUID, product_id: UUID) -> Product:
