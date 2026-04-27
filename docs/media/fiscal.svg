@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Fiscal NexERP</title>
+  <desc id="desc">Preview visual da emissão de NF-e em homologação no NexERP.</desc>
+  <rect width="1200" height="720" rx="36" fill="#f3efe3"/>
+  <rect x="84" y="70" width="1032" height="580" rx="34" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="126" y="132" fill="#0f766e" font-family="monospace" font-size="18" letter-spacing="6">FISCAL</text>
+  <text x="126" y="184" fill="#0f172a" font-family="Arial, sans-serif" font-size="42" font-weight="800">NF-e em homologação</text>
+  <text x="126" y="222" fill="#64748b" font-family="Arial, sans-serif" font-size="20">XML, chave de acesso, protocolo e trilha auditável.</text>
+  <rect x="126" y="280" width="410" height="252" rx="28" fill="#ecfeff"/>
+  <text x="158" y="340" fill="#0f172a" font-family="Arial, sans-serif" font-size="24" font-weight="700">Venda VEN-20260427</text>
+  <text x="158" y="386" fill="#475569" font-family="Arial, sans-serif" font-size="18">Total: R$ 1.248,90</text>
+  <rect x="158" y="426" width="246" height="58" rx="18" fill="#0f766e"/>
+  <text x="184" y="463" fill="#ffffff" font-family="Arial, sans-serif" font-size="18" font-weight="700">Emitir homologação</text>
+  <rect x="590" y="280" width="420" height="252" rx="28" fill="#0f172a"/>
+  <text x="622" y="338" fill="#67e8f9" font-family="monospace" font-size="16">CHAVE DE ACESSO</text>
+  <text x="622" y="382" fill="#ffffff" font-family="monospace" font-size="18">352604112223330001815500100000001...</text>
+  <text x="622" y="442" fill="#67e8f9" font-family="monospace" font-size="16">STATUS</text>
+  <text x="622" y="486" fill="#bbf7d0" font-family="Arial, sans-serif" font-size="24" font-weight="700">authorized_homologation</text>
+</svg>
