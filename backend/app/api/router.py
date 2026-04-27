@@ -5,6 +5,7 @@ from app.api.v1.categories import router as categories_router
 from app.api.v1.companies import router as companies_router
 from app.api.v1.customers import router as customers_router
 from app.api.v1.dashboard import router as dashboard_router
+from app.api.v1.finance import router as finance_router
 from app.api.v1.health import router as health_router
 from app.api.v1.purchases import router as purchases_router
 from app.api.v1.products import router as products_router
@@ -24,3 +25,4 @@ api_router.include_router(products_router)
 api_router.include_router(sales_router)
 api_router.include_router(purchases_router)
 api_router.include_router(stock_router)
+api_router.include_router(finance_router)
