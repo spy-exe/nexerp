@@ -12,7 +12,8 @@ import {
   ShoppingBasket,
   ShoppingCart,
   Truck,
-  Users
+  Users,
+  Wallet,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -27,6 +28,7 @@ const items = [
   { href: "/products", label: "Produtos", icon: Package },
   { href: "/categories", label: "Categorias", icon: ListTree },
   { href: "/stock", label: "Estoque", icon: Boxes },
+  { href: "/finance", label: "Financeiro", icon: Wallet },
   { href: "/onboarding", label: "Onboarding", icon: ChartColumn },
   { href: "/settings", label: "Configurações", icon: Settings2 }
 ]
