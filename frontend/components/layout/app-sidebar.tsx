@@ -4,10 +4,12 @@ import Link from "next/link"
 import {
   Boxes,
   ChartColumn,
+  FileText,
   LayoutDashboard,
   ListTree,
   Package,
   ReceiptText,
+  ShieldCheck,
   Settings2,
   ShoppingBasket,
   ShoppingCart,
@@ -29,7 +31,10 @@ const items = [
   { href: "/categories", label: "Categorias", icon: ListTree },
   { href: "/stock", label: "Estoque", icon: Boxes },
   { href: "/finance", label: "Financeiro", icon: Wallet },
+  { href: "/fiscal", label: "Fiscal", icon: FileText },
+  { href: "/reports", label: "Relatórios", icon: ChartColumn },
   { href: "/onboarding", label: "Onboarding", icon: ChartColumn },
+  { href: "/settings/permissions", label: "Permissões", icon: ShieldCheck },
   { href: "/settings", label: "Configurações", icon: Settings2 }
 ]
 
@@ -38,13 +43,13 @@ export function AppSidebar({ pathname }: { pathname: string }) {
     <aside className="hidden w-72 shrink-0 flex-col border-r border-white/50 bg-[#0f172a] px-6 py-8 text-white lg:flex">
       <div className="mb-10">
         <p className="font-mono text-xs uppercase tracking-[0.35em] text-cyan-200/80">NexERP</p>
-        <h1 className="mt-3 text-2xl font-semibold">Core Comercial</h1>
-        <p className="mt-2 text-sm text-slate-300">Clientes, fornecedores, vendas, compras, PDV e inteligência operacional.</p>
+        <h1 className="mt-3 text-2xl font-semibold">Operação ERP</h1>
+        <p className="mt-2 text-sm text-slate-300">Comercial, financeiro, fiscal e governança em uma base multi-tenant.</p>
       </div>
       <nav className="space-y-2">
         {items.map((item) => {
           const Icon = item.icon
-          const active = pathname.startsWith(item.href)
+          const active = item.href === "/settings" ? pathname === item.href : pathname.startsWith(item.href)
           return (
             <Link
               key={item.href}

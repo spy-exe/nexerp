@@ -516,3 +516,134 @@ export async function payPayable(id: string, payload: unknown) {
     body: JSON.stringify(payload)
   })
 }
+
+// ── Fiscal, Audit, Permissions and Reports ───────────────────────────────────
+
+export type FiscalDocument = {
+  id: string
+  company_id: string
+  sale_id: string
+  user_id: string
+  model: string
+  series: string
+  number: number
+  environment: "homologation"
+  status: string
+  access_key: string
+  protocol: string | null
+  sefaz_endpoint: string | null
+  total_amount: string
+  issued_at: string
+  authorized_at: string | null
+  response_message: string | null
+  xml_content?: string
+}
+
+export type AuditLog = {
+  id: string
+  company_id: string
+  user_id: string | null
+  action: string
+  table_name: string
+  record_id: string
+  old_data: Record<string, unknown> | null
+  new_data: Record<string, unknown> | null
+  ip_address: string | null
+  note: string | null
+  created_at: string
+}
+
+export type PermissionDefinition = {
+  code: string
+  module: string
+  description: string
+}
+
+export type RolePermission = {
+  id: string
+  name: string
+  description: string | null
+  permissions: string[]
+  is_system: boolean
+}
+
+export type SalesReportItem = {
+  id: string
+  label: string
+  quantity: string
+  total: string
+}
+
+export type AdvancedSalesReport = {
+  total_revenue: string
+  total_sales: number
+  average_ticket: string
+  top_products: SalesReportItem[]
+  top_customers: SalesReportItem[]
+}
+
+export type AdvancedStockReport = {
+  total_products: number
+  low_stock_count: number
+  items: Array<{
+    product_id: string
+    product_name: string
+    sku: string
+    warehouse_id: string
+    warehouse_name: string
+    quantity: string
+    min_stock: string
+    status: "ok" | "low_stock"
+  }>
+}
+
+export type AdvancedFinancialReport = {
+  income: string
+  expense: string
+  net: string
+  receivables_open: string
+  payables_open: string
+}
+
+export async function listFiscalDocuments() {
+  return apiFetch<FiscalDocument[]>("/fiscal/invoices")
+}
+
+export async function issueHomologationNfe(saleId: string) {
+  return apiFetch<FiscalDocument>(`/fiscal/nfe/homologation/sales/${saleId}`, {
+    method: "POST",
+    body: JSON.stringify({ environment: "homologation" })
+  })
+}
+
+export async function listAuditLogs(params?: Record<string, string>) {
+  const qs = params ? "?" + new URLSearchParams(params).toString() : ""
+  return apiFetch<AuditLog[]>(`/audit/logs${qs}`)
+}
+
+export async function listPermissions() {
+  return apiFetch<PermissionDefinition[]>("/permissions")
+}
+
+export async function listRolePermissions() {
+  return apiFetch<RolePermission[]>("/permissions/roles")
+}
+
+export async function updateRolePermissions(roleId: string, permissions: string[]) {
+  return apiFetch<RolePermission>(`/permissions/roles/${roleId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ permissions })
+  })
+}
+
+export async function getAdvancedSalesReport() {
+  return apiFetch<AdvancedSalesReport>("/reports/advanced/sales")
+}
+
+export async function getAdvancedStockReport() {
+  return apiFetch<AdvancedStockReport>("/reports/advanced/stock")
+}
+
+export async function getAdvancedFinancialReport() {
+  return apiFetch<AdvancedFinancialReport>("/reports/advanced/financial")
+}

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { CreditCard, Plus, ReceiptText, ShoppingCart, Trash2, Wallet } from "lucide-react"
+import { Barcode, CreditCard, Plus, ReceiptText, ShoppingCart, Trash2, Wallet } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -57,6 +57,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
   const [selectedProductId, setSelectedProductId] = useState("")
   const [productQuantity, setProductQuantity] = useState("1")
   const [productPrice, setProductPrice] = useState("")
+  const [barcodeValue, setBarcodeValue] = useState("")
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<DraftPayment["method"]>("pix")
   const [paymentAmount, setPaymentAmount] = useState("")
   const [items, setItems] = useState<DraftSaleItem[]>([])
@@ -109,18 +110,46 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
       return
     }
 
-    setItems((current) => [
-      ...current,
-      {
-        product_id: product.id,
-        product_name: product.name,
-        quantity: qty,
-        unit_price: unitPrice
-      }
-    ])
+    addProductToCart(product, qty, unitPrice)
     setSelectedProductId("")
     setProductQuantity("1")
     setProductPrice("")
+  }
+
+  function handleBarcodeSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setFormError(null)
+    const code = barcodeValue.trim()
+    if (!code) {
+      return
+    }
+    const product = productsQuery.data?.find((item) => item.barcode === code || item.sku === code)
+    if (!product) {
+      setFormError(`Produto não encontrado para o código ${code}.`)
+      return
+    }
+    addProductToCart(product, 1, Number(product.sale_price))
+    setBarcodeValue("")
+  }
+
+  function addProductToCart(product: Product, qty: number, unitPrice: number) {
+    setItems((current) => {
+      const existingIndex = current.findIndex((item) => item.product_id === product.id && item.unit_price === unitPrice)
+      if (existingIndex === -1) {
+        return [
+          ...current,
+          {
+            product_id: product.id,
+            product_name: product.name,
+            quantity: qty,
+            unit_price: unitPrice
+          }
+        ]
+      }
+      return current.map((item, index) =>
+        index === existingIndex ? { ...item, quantity: item.quantity + qty } : item
+      )
+    })
   }
 
   function handleAddPayment() {
@@ -166,6 +195,30 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">{subtitle}</p>
           <h1 className="mt-3 text-3xl font-semibold text-slate-900">{title}</h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">{description}</p>
+
+          {channel === "pos" && (
+            <form className="mt-8 rounded-[24px] border border-teal-200 bg-teal-50 p-4" onSubmit={handleBarcodeSubmit}>
+              <Label className="flex items-center gap-2 text-teal-900">
+                <Barcode className="h-4 w-4" />
+                Leitor USB / código de barras
+              </Label>
+              <div className="mt-3 flex gap-3">
+                <Input
+                  autoFocus
+                  inputMode="numeric"
+                  placeholder="Bipe o produto ou digite SKU/código"
+                  value={barcodeValue}
+                  onChange={(event) => setBarcodeValue(event.target.value)}
+                />
+                <Button type="submit" className="shrink-0">
+                  Adicionar
+                </Button>
+              </div>
+              <p className="mt-2 text-xs text-teal-800">
+                Leitores USB funcionam como teclado: o Enter finaliza a leitura e adiciona 1 unidade ao carrinho.
+              </p>
+            </form>
+          )}
 
           <div className="mt-8 grid gap-4 md:grid-cols-[1fr_180px_160px_auto]">
             <div>
