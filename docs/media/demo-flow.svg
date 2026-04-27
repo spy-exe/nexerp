@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Fluxo demo NexERP</title>
+  <desc id="desc">Demo animada do fluxo comercial, financeiro e fiscal do NexERP.</desc>
+  <rect width="1200" height="720" rx="36" fill="#0f172a"/>
+  <g font-family="Arial, sans-serif" font-weight="700">
+    <text x="90" y="120" fill="#67e8f9" font-family="monospace" font-size="20" letter-spacing="7">DEMO FLOW</text>
+    <text x="90" y="176" fill="#ffffff" font-size="46">Da venda ao fiscal em um fluxo</text>
+  </g>
+  <g>
+    <circle cx="230" cy="390" r="86" fill="#14b8a6">
+      <animate attributeName="r" values="78;94;78" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="600" cy="390" r="86" fill="#f59e0b">
+      <animate attributeName="r" values="86;78;94;86" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="970" cy="390" r="86" fill="#22c55e">
+      <animate attributeName="r" values="94;78;86;94" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <path d="M330 390 H500" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round"/>
+    <path d="M700 390 H870" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round"/>
+    <text x="182" y="400" fill="#052e2b" font-size="28" font-weight="800" font-family="Arial, sans-serif">PDV</text>
+    <text x="540" y="400" fill="#451a03" font-size="28" font-weight="800" font-family="Arial, sans-serif">FIN</text>
+    <text x="918" y="400" fill="#052e16" font-size="28" font-weight="800" font-family="Arial, sans-serif">NF-e</text>
+  </g>
+  <text x="180" y="540" fill="#e2e8f0" font-size="22" font-family="Arial, sans-serif">Bipe produto</text>
+  <text x="510" y="540" fill="#e2e8f0" font-size="22" font-family="Arial, sans-serif">Registre receita</text>
+  <text x="880" y="540" fill="#e2e8f0" font-size="22" font-family="Arial, sans-serif">Emita homologação</text>
+</svg>

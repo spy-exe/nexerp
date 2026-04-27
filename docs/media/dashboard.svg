@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Dashboard NexERP</title>
+  <desc id="desc">Preview visual do dashboard operacional do NexERP.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="56%" stop-color="#134e4a"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" rx="36" fill="url(#bg)"/>
+  <rect x="52" y="54" width="1096" height="612" rx="30" fill="#f8fafc"/>
+  <rect x="80" y="88" width="210" height="548" rx="24" fill="#0f172a"/>
+  <text x="112" y="136" fill="#67e8f9" font-family="monospace" font-size="18" letter-spacing="6">NEXERP</text>
+  <text x="112" y="178" fill="#ffffff" font-family="Arial, sans-serif" font-size="26" font-weight="700">Operação ERP</text>
+  <g fill="#cbd5e1" font-family="Arial, sans-serif" font-size="18">
+    <text x="116" y="250">Dashboard</text>
+    <text x="116" y="296">Vendas</text>
+    <text x="116" y="342">Estoque</text>
+    <text x="116" y="388">Financeiro</text>
+    <text x="116" y="434">Fiscal</text>
+  </g>
+  <text x="330" y="132" fill="#0f172a" font-family="Arial, sans-serif" font-size="36" font-weight="800">Dashboard executivo</text>
+  <text x="330" y="166" fill="#64748b" font-family="Arial, sans-serif" font-size="18">KPIs comerciais, estoque crítico e ranking em tempo real.</text>
+  <g>
+    <rect x="330" y="210" width="230" height="132" rx="24" fill="#ecfeff"/>
+    <rect x="586" y="210" width="230" height="132" rx="24" fill="#fff7ed"/>
+    <rect x="842" y="210" width="230" height="132" rx="24" fill="#f0fdf4"/>
+    <text x="358" y="258" fill="#0f766e" font-family="Arial, sans-serif" font-size="18">Receita mensal</text>
+    <text x="358" y="302" fill="#0f172a" font-family="Arial, sans-serif" font-size="34" font-weight="800">R$ 184.920</text>
+    <text x="614" y="258" fill="#c2410c" font-family="Arial, sans-serif" font-size="18">Ticket médio</text>
+    <text x="614" y="302" fill="#0f172a" font-family="Arial, sans-serif" font-size="34" font-weight="800">R$ 426</text>
+    <text x="870" y="258" fill="#15803d" font-family="Arial, sans-serif" font-size="18">Vendas hoje</text>
+    <text x="870" y="302" fill="#0f172a" font-family="Arial, sans-serif" font-size="34" font-weight="800">87</text>
+  </g>
+  <rect x="330" y="378" width="742" height="218" rx="28" fill="#ffffff" stroke="#e2e8f0"/>
+  <polyline points="370,546 455,506 540,520 625,462 710,480 795,416 880,438 1032,390" fill="none" stroke="#0d9488" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#0f172a" font-family="Arial, sans-serif" font-size="20" font-weight="700">
+    <text x="370" y="426">Evolução comercial</text>
+    <text x="370" y="470">Produtos mais vendidos</text>
+  </g>
+</svg>
