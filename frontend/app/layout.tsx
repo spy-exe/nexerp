@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" data-scroll-behavior="smooth">
       <body className={`${manrope.variable} ${spaceMono.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>
