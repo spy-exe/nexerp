@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
     password_reset_expire_minutes: int = 60
+    global_rate_limit_per_minute: int = 300
+    security_headers_enabled: bool = True
 
     next_public_app_name: str = "NexERP"
     frontend_url: str = "http://localhost:3000"
@@ -41,6 +43,14 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         raise TypeError("ALLOWED_ORIGINS must be a comma-separated string or list.")
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> Self:
+        if self.app_env == "production" and "*" in self.allowed_origins:
+            raise ValueError("ALLOWED_ORIGINS cannot contain '*' in production.")
+        if self.app_env == "production" and self.secret_key.startswith("change_me"):
+            raise ValueError("SECRET_KEY must be replaced in production.")
+        return self
 
     @property
     def async_database_url(self) -> str:
