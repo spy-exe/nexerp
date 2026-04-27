@@ -17,8 +17,8 @@ const spaceMono = Space_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "NexERP",
-  description: "ERP open source para pequenas e médias empresas brasileiras."
+  title: "NexERP | ERP open source brasileiro",
+  description: "ERP open source para PMEs brasileiras com comercial, financeiro, estoque, fiscal, auditoria e permissões."
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
