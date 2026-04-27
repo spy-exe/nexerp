@@ -10,6 +10,7 @@ from app.models.finance import (
     InstallmentStatus,
     TransactionType,
 )
+from app.models.fiscal import FiscalDocument
 from app.models.party import BusinessParty, PartyKind, PartyPersonKind
 from app.models.password_reset_token import PasswordResetToken
 from app.models.product import Product
@@ -29,6 +30,7 @@ __all__ = [
     "FinancialAccount",
     "FinancialCategory",
     "FinancialTransaction",
+    "FiscalDocument",
     "Installment",
     "InstallmentStatus",
     "TransactionType",

@@ -13,6 +13,7 @@ from app.models.base import CompanyBoundMixin, TimestampMixin, UUIDPrimaryKeyMix
 
 if TYPE_CHECKING:
     from app.models.company import Company
+    from app.models.fiscal import FiscalDocument
     from app.models.party import BusinessParty
     from app.models.stock import Warehouse
     from app.models.user import User
@@ -41,6 +42,7 @@ class Sale(Base, UUIDPrimaryKeyMixin, TimestampMixin, CompanyBoundMixin):
     warehouse: Mapped["Warehouse"] = relationship(back_populates="sales")
     items: Mapped[list["SaleItem"]] = relationship(back_populates="sale", cascade="all, delete-orphan")
     payments: Mapped[list["SalePayment"]] = relationship(back_populates="sale", cascade="all, delete-orphan")
+    fiscal_documents: Mapped[list["FiscalDocument"]] = relationship(back_populates="sale")
 
 
 class SaleItem(Base, UUIDPrimaryKeyMixin, TimestampMixin, CompanyBoundMixin):
