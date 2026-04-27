@@ -65,6 +65,12 @@ SYSTEM_ROLES: dict[str, list[str]] = {
         "finance:manage",
         "finance:transactions",
         "finance:pay",
+        "fiscal:read",
+        "fiscal:issue",
+        "reports:read",
+        "audit:read",
+        "permissions:read",
+        "permissions:update",
         "stock:read",
         "stock:adjust",
     ],
@@ -80,6 +86,8 @@ SYSTEM_ROLES: dict[str, list[str]] = {
         "sales:create",
         "finance:read",
         "finance:transactions",
+        "fiscal:read",
+        "reports:read",
     ],
     "Estoquista": [
         "products:read",
@@ -90,6 +98,7 @@ SYSTEM_ROLES: dict[str, list[str]] = {
         "purchases:read",
         "purchases:create",
         "finance:read",
+        "reports:read",
     ],
     "Financeiro": [
         "company:read",
@@ -102,6 +111,8 @@ SYSTEM_ROLES: dict[str, list[str]] = {
         "finance:manage",
         "finance:transactions",
         "finance:pay",
+        "fiscal:read",
+        "reports:read",
     ],
     "Visualizador": [
         "company:read",
@@ -114,6 +125,8 @@ SYSTEM_ROLES: dict[str, list[str]] = {
         "sales:read",
         "purchases:read",
         "finance:read",
+        "fiscal:read",
+        "reports:read",
     ],
 }
 

@@ -10,6 +10,7 @@ from app.models.base import ActivatableMixin, TimestampMixin, UUIDPrimaryKeyMixi
 
 if TYPE_CHECKING:
     from app.models.finance import FinancialAccount, FinancialCategory, FinancialTransaction, Installment
+    from app.models.fiscal import FiscalDocument
     from app.models.party import BusinessParty
     from app.models.category import Category
     from app.models.purchase import Purchase
@@ -54,3 +55,4 @@ class Company(Base, UUIDPrimaryKeyMixin, TimestampMixin, ActivatableMixin):
     financial_categories: Mapped[list["FinancialCategory"]] = relationship(back_populates="company")
     financial_transactions: Mapped[list["FinancialTransaction"]] = relationship(back_populates="company")
     installments: Mapped[list["Installment"]] = relationship(back_populates="company")
+    fiscal_documents: Mapped[list["FiscalDocument"]] = relationship(back_populates="company")
