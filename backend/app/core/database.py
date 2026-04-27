@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import StaticPool
 
 from app.core.config import Settings
 
@@ -23,10 +24,16 @@ class Base(DeclarativeBase):
 class DatabaseManager:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
+        is_sqlite = "sqlite" in settings.async_database_url
+        engine_kwargs: dict[str, Any] = {"future": True}
+        if is_sqlite:
+            engine_kwargs["connect_args"] = {"check_same_thread": False}
+            engine_kwargs["poolclass"] = StaticPool
+        else:
+            engine_kwargs["pool_pre_ping"] = True
         self.engine: AsyncEngine = create_async_engine(
             settings.async_database_url,
-            future=True,
-            pool_pre_ping=True,
+            **engine_kwargs,
         )
         self.session_factory = async_sessionmaker(
             self.engine,

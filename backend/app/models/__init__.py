@@ -1,6 +1,15 @@
 from app.models.audit_log import AuditLog
 from app.models.category import Category
 from app.models.company import Company
+from app.models.finance import (
+    AccountType,
+    FinancialAccount,
+    FinancialCategory,
+    FinancialTransaction,
+    Installment,
+    InstallmentStatus,
+    TransactionType,
+)
 from app.models.party import BusinessParty, PartyKind, PartyPersonKind
 from app.models.password_reset_token import PasswordResetToken
 from app.models.product import Product
@@ -12,10 +21,17 @@ from app.models.stock import StockBalance, StockMovement, StockMovementType, War
 from app.models.user import User
 
 __all__ = [
+    "AccountType",
     "AuditLog",
     "Category",
     "Company",
     "BusinessParty",
+    "FinancialAccount",
+    "FinancialCategory",
+    "FinancialTransaction",
+    "Installment",
+    "InstallmentStatus",
+    "TransactionType",
     "PasswordResetToken",
     "PartyKind",
     "PartyPersonKind",

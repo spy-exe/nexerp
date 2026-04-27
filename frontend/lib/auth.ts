@@ -350,3 +350,169 @@ export async function createPurchase(payload: unknown) {
     body: JSON.stringify(payload)
   })
 }
+
+// ── Finance types ──────────────────────────────────────────────────────────────
+
+export type FinancialAccount = {
+  id: string
+  name: string
+  type: "bank" | "cash" | "digital"
+  balance: string
+  bank_name: string | null
+  agency: string | null
+  account_number: string | null
+  notes: string | null
+  is_active: boolean
+}
+
+export type FinancialCategory = {
+  id: string
+  name: string
+  type: "income" | "expense"
+  parent_id: string | null
+  is_active: boolean
+}
+
+export type FinancialTransaction = {
+  id: string
+  account_id: string
+  account_name: string
+  category_id: string | null
+  category_name: string | null
+  person_id: string | null
+  person_name: string | null
+  type: "income" | "expense"
+  amount: string
+  date: string
+  description: string
+  reconciled: boolean
+  notes: string | null
+}
+
+export type Installment = {
+  id: string
+  person_id: string | null
+  person_name: string | null
+  type: "income" | "expense"
+  description: string
+  total_amount: string
+  paid_amount: string
+  remaining_amount: string
+  due_date: string
+  status: "open" | "partial" | "paid" | "overdue" | "cancelled"
+  notes: string | null
+}
+
+export type FinancialSummary = {
+  total_accounts_balance: string
+  receivables_open: string
+  payables_open: string
+  overdue_receivables: string
+  overdue_payables: string
+  income_month: string
+  expense_month: string
+  net_month: string
+}
+
+export type CashFlowEntry = {
+  date: string
+  income: string
+  expense: string
+  balance: string
+}
+
+export type CashFlow = {
+  entries: CashFlowEntry[]
+  total_income: string
+  total_expense: string
+  net: string
+}
+
+// ── Finance API ────────────────────────────────────────────────────────────────
+
+export async function getFinancialSummary() {
+  return apiFetch<FinancialSummary>("/finance/summary")
+}
+
+export async function getCashFlow(dateFrom: string, dateTo: string) {
+  return apiFetch<CashFlow>(`/finance/cashflow?date_from=${dateFrom}&date_to=${dateTo}`)
+}
+
+export async function listFinancialAccounts() {
+  return apiFetch<FinancialAccount[]>("/finance/accounts")
+}
+
+export async function createFinancialAccount(payload: unknown) {
+  return apiFetch<FinancialAccount>("/finance/accounts", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateFinancialAccount(id: string, payload: unknown) {
+  return apiFetch<FinancialAccount>(`/finance/accounts/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function listFinancialCategories() {
+  return apiFetch<FinancialCategory[]>("/finance/categories")
+}
+
+export async function createFinancialCategory(payload: unknown) {
+  return apiFetch<FinancialCategory>("/finance/categories", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function listTransactions(params?: Record<string, string>) {
+  const qs = params ? "?" + new URLSearchParams(params).toString() : ""
+  return apiFetch<FinancialTransaction[]>(`/finance/transactions${qs}`)
+}
+
+export async function createTransaction(payload: unknown) {
+  return apiFetch<FinancialTransaction>("/finance/transactions", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function listReceivables(statusFilter?: string) {
+  const qs = statusFilter ? `?status=${statusFilter}` : ""
+  return apiFetch<Installment[]>(`/finance/receivables${qs}`)
+}
+
+export async function createReceivable(payload: unknown) {
+  return apiFetch<Installment>("/finance/receivables", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function payReceivable(id: string, payload: unknown) {
+  return apiFetch<Installment>(`/finance/receivables/${id}/pay`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function listPayables(statusFilter?: string) {
+  const qs = statusFilter ? `?status=${statusFilter}` : ""
+  return apiFetch<Installment[]>(`/finance/payables${qs}`)
+}
+
+export async function createPayable(payload: unknown) {
+  return apiFetch<Installment>("/finance/payables", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function payPayable(id: string, payload: unknown) {
+  return apiFetch<Installment>(`/finance/payables/${id}/pay`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
