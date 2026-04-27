@@ -9,9 +9,12 @@ from app.core.database import Base
 from app.models.base import ActivatableMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
+    from app.models.party import BusinessParty
     from app.models.category import Category
+    from app.models.purchase import Purchase
     from app.models.product import Product
     from app.models.role import Role
+    from app.models.sale import Sale
     from app.models.stock import Warehouse
     from app.models.user import User
 
@@ -40,6 +43,9 @@ class Company(Base, UUIDPrimaryKeyMixin, TimestampMixin, ActivatableMixin):
 
     users: Mapped[list["User"]] = relationship(back_populates="company")
     roles: Mapped[list["Role"]] = relationship(back_populates="company")
+    business_parties: Mapped[list["BusinessParty"]] = relationship(back_populates="company")
     categories: Mapped[list["Category"]] = relationship(back_populates="company")
     products: Mapped[list["Product"]] = relationship(back_populates="company")
+    sales: Mapped[list["Sale"]] = relationship(back_populates="company")
+    purchases: Mapped[list["Purchase"]] = relationship(back_populates="company")
     warehouses: Mapped[list["Warehouse"]] = relationship(back_populates="company")

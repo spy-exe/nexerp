@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import app.models  # noqa: F401
 from app.api.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.database import DatabaseManager

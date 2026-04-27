@@ -14,6 +14,8 @@ from app.models.base import ActivatableMixin, CompanyBoundMixin, TimestampMixin,
 if TYPE_CHECKING:
     from app.models.company import Company
     from app.models.product import Product
+    from app.models.purchase import Purchase
+    from app.models.sale import Sale
     from app.models.user import User
 
 
@@ -34,6 +36,8 @@ class Warehouse(Base, UUIDPrimaryKeyMixin, TimestampMixin, CompanyBoundMixin, Ac
     company: Mapped["Company"] = relationship(back_populates="warehouses")
     balances: Mapped[list["StockBalance"]] = relationship(back_populates="warehouse")
     movements: Mapped[list["StockMovement"]] = relationship(back_populates="warehouse")
+    sales: Mapped[list["Sale"]] = relationship(back_populates="warehouse")
+    purchases: Mapped[list["Purchase"]] = relationship(back_populates="warehouse")
 
 
 class StockBalance(Base, UUIDPrimaryKeyMixin, TimestampMixin, CompanyBoundMixin):

@@ -12,8 +12,10 @@ from app.models.role import user_roles
 
 if TYPE_CHECKING:
     from app.models.company import Company
+    from app.models.purchase import Purchase
     from app.models.refresh_token import RefreshToken
     from app.models.role import Role
+    from app.models.sale import Sale
 
 
 class User(Base, UUIDPrimaryKeyMixin, TimestampMixin, CompanyBoundMixin, ActivatableMixin):
@@ -34,3 +36,5 @@ class User(Base, UUIDPrimaryKeyMixin, TimestampMixin, CompanyBoundMixin, Activat
         lazy="selectin",
     )
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user")
+    sales: Mapped[list["Sale"]] = relationship(back_populates="user")
+    purchases: Mapped[list["Purchase"]] = relationship(back_populates="user")
