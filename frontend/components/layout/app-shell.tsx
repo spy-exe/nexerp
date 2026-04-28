@@ -1,15 +1,19 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { usePathname, useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 
 import { AppHeader } from "@/components/layout/app-header"
 import { AppSidebar } from "@/components/layout/app-sidebar"
+import { warmAppNavigation } from "@/lib/app-prefetch"
 import { useAuthStore } from "@/stores/auth-store"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const navigationWarmed = useRef(false)
   const accessToken = useAuthStore((state) => state.accessToken)
   const company = useAuthStore((state) => state.company)
 
@@ -22,6 +26,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       router.replace("/onboarding")
     }
   }, [accessToken, company, router])
+
+  useEffect(() => {
+    if (!accessToken || !company?.onboarding_completed || navigationWarmed.current) {
+      return
+    }
+
+    navigationWarmed.current = true
+    return warmAppNavigation(router, queryClient)
+  }, [accessToken, company?.onboarding_completed, queryClient, router])
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.08),_transparent_35%),linear-gradient(180deg,_#f6f1e8_0%,_#f8fafc_60%)]">

@@ -1,6 +1,8 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   Boxes,
   ChartColumn,
@@ -18,6 +20,7 @@ import {
   Wallet,
 } from "lucide-react"
 
+import { prefetchAppRoute } from "@/lib/app-prefetch"
 import { cn } from "@/lib/utils"
 
 const items = [
@@ -39,6 +42,9 @@ const items = [
 ]
 
 export function AppSidebar({ pathname }: { pathname: string }) {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+
   return (
     <aside className="hidden w-72 shrink-0 flex-col border-r border-white/50 bg-[#0f172a] px-6 py-8 text-white lg:flex">
       <div className="mb-10">
@@ -54,6 +60,8 @@ export function AppSidebar({ pathname }: { pathname: string }) {
             <Link
               key={item.href}
               href={item.href}
+              onFocus={() => prefetchAppRoute(router, queryClient, item.href)}
+              onMouseEnter={() => prefetchAppRoute(router, queryClient, item.href)}
               className={cn(
                 "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition",
                 active ? "bg-white text-slate-900" : "text-slate-300 hover:bg-white/10 hover:text-white"
