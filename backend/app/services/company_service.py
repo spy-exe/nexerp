@@ -40,7 +40,11 @@ class CompanyService:
             "timezone": company.timezone,
             "currency": company.currency,
         }
-        for field, value in payload.model_dump(exclude_unset=True).items():
+        data = payload.model_dump(exclude_unset=True)
+        for field in ("timezone", "currency"):
+            if data.get(field) is None:
+                data.pop(field, None)
+        for field, value in data.items():
             setattr(company, field, value)
         company.onboarding_completed = True
         self.audit.log(
@@ -50,7 +54,7 @@ class CompanyService:
             table_name="companies",
             record_id=str(company.id),
             old_data=previous,
-            new_data=payload.model_dump(exclude_unset=True),
+            new_data=data,
             ip_address=ip_address,
         )
         await self.db.commit()

@@ -21,6 +21,16 @@ export type SessionPayload = {
     legal_name: string
     cnpj: string
     email: string
+    phone?: string | null
+    address_zip?: string | null
+    address_state?: string | null
+    address_city?: string | null
+    address_street?: string | null
+    address_number?: string | null
+    address_neighborhood?: string | null
+    logo_url?: string | null
+    tax_regime?: string | null
+    cnae?: string | null
     onboarding_completed: boolean
     timezone: string
     currency: string

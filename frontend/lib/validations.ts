@@ -1,5 +1,15 @@
 import { z } from "zod"
 
+const emptyToUndefined = (value: unknown) => {
+  if (typeof value === "string" && value.trim() === "") {
+    return undefined
+  }
+  return value
+}
+
+const optionalText = (maxLength: number, message?: string) =>
+  z.preprocess(emptyToUndefined, z.string().max(maxLength, message).optional())
+
 export const loginSchema = z.object({
   email: z.string().email("Informe um e-mail válido."),
   password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres.")
@@ -41,17 +51,26 @@ export const resetPasswordSchema = z.object({
 })
 
 export const onboardingSchema = z.object({
-  phone: z.string().optional(),
-  address_zip: z.string().optional(),
-  address_state: z.string().max(2).optional(),
-  address_city: z.string().optional(),
-  address_street: z.string().optional(),
-  address_number: z.string().optional(),
-  address_neighborhood: z.string().optional(),
-  tax_regime: z.string().optional(),
-  cnae: z.string().optional(),
-  timezone: z.string().optional(),
-  currency: z.string().optional()
+  phone: optionalText(20, "Telefone deve ter no máximo 20 caracteres."),
+  address_zip: z.preprocess(
+    emptyToUndefined,
+    z.string().regex(/^\d{5}-?\d{3}$/, "CEP deve ter 8 dígitos.").optional()
+  ),
+  address_state: z.preprocess(
+    emptyToUndefined,
+    z.string().length(2, "Use a sigla do estado.").transform((value) => value.toUpperCase()).optional()
+  ),
+  address_city: optionalText(120, "Cidade deve ter no máximo 120 caracteres."),
+  address_street: optionalText(255, "Rua deve ter no máximo 255 caracteres."),
+  address_number: optionalText(30, "Número deve ter no máximo 30 caracteres."),
+  address_neighborhood: optionalText(120, "Bairro deve ter no máximo 120 caracteres."),
+  tax_regime: optionalText(50, "Regime tributário deve ter no máximo 50 caracteres."),
+  cnae: optionalText(20, "CNAE deve ter no máximo 20 caracteres."),
+  timezone: optionalText(80, "Timezone deve ter no máximo 80 caracteres."),
+  currency: z.preprocess(
+    emptyToUndefined,
+    z.string().length(3, "Moeda deve ter 3 letras.").transform((value) => value.toUpperCase()).optional()
+  )
 })
 
 export const categorySchema = z.object({

@@ -11,12 +11,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const accessToken = useAuthStore((state) => state.accessToken)
+  const company = useAuthStore((state) => state.company)
 
   useEffect(() => {
     if (!accessToken) {
       router.replace("/login")
+      return
     }
-  }, [accessToken, router])
+    if (company && !company.onboarding_completed) {
+      router.replace("/onboarding")
+    }
+  }, [accessToken, company, router])
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.08),_transparent_35%),linear-gradient(180deg,_#f6f1e8_0%,_#f8fafc_60%)]">

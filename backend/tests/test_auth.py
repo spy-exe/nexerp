@@ -32,6 +32,36 @@ async def test_register_login_refresh_and_me(client) -> None:
 
 
 @pytest.mark.asyncio
+async def test_onboarding_accepts_blank_optional_fields(client) -> None:
+    session = await bootstrap_session(client)
+
+    response = await client.patch(
+        "/api/v1/companies/me/onboarding",
+        json={
+            "phone": "",
+            "address_zip": "",
+            "address_state": "sp",
+            "address_city": "São Paulo",
+            "address_street": "",
+            "address_number": "",
+            "address_neighborhood": "",
+            "tax_regime": "Simples Nacional",
+            "cnae": "",
+            "timezone": "",
+            "currency": "brl",
+        },
+        headers=session["headers"],
+    )
+
+    assert response.status_code == 200, response.text
+    company = response.json()
+    assert company["onboarding_completed"] is True
+    assert company["address_zip"] is None
+    assert company["address_state"] == "SP"
+    assert company["currency"] == "BRL"
+
+
+@pytest.mark.asyncio
 async def test_forgot_and_reset_password_flow(client) -> None:
     await bootstrap_session(client)
 

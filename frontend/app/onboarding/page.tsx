@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -16,12 +17,23 @@ import { useAuthStore } from "@/stores/auth-store"
 type OnboardingValues = z.infer<typeof onboardingSchema>
 
 export default function OnboardingPage() {
+  const router = useRouter()
   const company = useAuthStore((state) => state.company)
   const setSession = useAuthStore((state) => state.setSession)
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      phone: ""
+      phone: company?.phone ?? "",
+      address_zip: company?.address_zip ?? "",
+      address_state: company?.address_state ?? "",
+      address_city: company?.address_city ?? "",
+      address_street: company?.address_street ?? "",
+      address_number: company?.address_number ?? "",
+      address_neighborhood: company?.address_neighborhood ?? "",
+      tax_regime: company?.tax_regime ?? "",
+      cnae: company?.cnae ?? "",
+      timezone: company?.timezone ?? "America/Sao_Paulo",
+      currency: company?.currency ?? "BRL"
     }
   })
 
@@ -39,6 +51,7 @@ export default function OnboardingPage() {
           company: updatedCompany
         })
       }
+      router.replace("/dashboard")
     },
     onError: (error) => {
       setError("root", { message: error instanceof Error ? error.message : "Falha ao concluir onboarding." })
@@ -62,42 +75,52 @@ export default function OnboardingPage() {
           <div>
             <Label>Telefone</Label>
             <Input {...register("phone")} />
+            {errors.phone && <p className="mt-2 text-sm text-rose-600">{errors.phone.message}</p>}
           </div>
           <div>
             <Label>CEP</Label>
             <Input {...register("address_zip")} />
+            {errors.address_zip && <p className="mt-2 text-sm text-rose-600">{errors.address_zip.message}</p>}
           </div>
           <div>
             <Label>Estado</Label>
             <Input {...register("address_state")} />
+            {errors.address_state && <p className="mt-2 text-sm text-rose-600">{errors.address_state.message}</p>}
           </div>
           <div>
             <Label>Cidade</Label>
             <Input {...register("address_city")} />
+            {errors.address_city && <p className="mt-2 text-sm text-rose-600">{errors.address_city.message}</p>}
           </div>
           <div>
             <Label>Rua</Label>
             <Input {...register("address_street")} />
+            {errors.address_street && <p className="mt-2 text-sm text-rose-600">{errors.address_street.message}</p>}
           </div>
           <div>
             <Label>Número</Label>
             <Input {...register("address_number")} />
+            {errors.address_number && <p className="mt-2 text-sm text-rose-600">{errors.address_number.message}</p>}
           </div>
           <div>
             <Label>Bairro</Label>
             <Input {...register("address_neighborhood")} />
+            {errors.address_neighborhood && <p className="mt-2 text-sm text-rose-600">{errors.address_neighborhood.message}</p>}
           </div>
           <div>
             <Label>Regime tributário</Label>
             <Input placeholder="Simples Nacional" {...register("tax_regime")} />
+            {errors.tax_regime && <p className="mt-2 text-sm text-rose-600">{errors.tax_regime.message}</p>}
           </div>
           <div>
             <Label>CNAE</Label>
             <Input {...register("cnae")} />
+            {errors.cnae && <p className="mt-2 text-sm text-rose-600">{errors.cnae.message}</p>}
           </div>
           <div>
             <Label>Moeda</Label>
-            <Input defaultValue="BRL" {...register("currency")} />
+            <Input {...register("currency")} />
+            {errors.currency && <p className="mt-2 text-sm text-rose-600">{errors.currency.message}</p>}
           </div>
           {errors.root && <p className="md:col-span-2 text-sm text-rose-600">{errors.root.message}</p>}
           <div className="md:col-span-2 flex justify-end pt-2">
