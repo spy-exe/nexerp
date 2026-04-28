@@ -90,3 +90,15 @@ async def test_forgot_and_reset_password_flow(client) -> None:
         json={"email": "admin@concrearte.com.br", "password": "NovaSenha@123"},
     )
     assert new_login_response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_login_errors_include_cors_headers(client) -> None:
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "missing@example.com", "password": "Senha@123"},
+        headers={"Origin": "http://testserver"},
+    )
+
+    assert response.status_code == 401
+    assert response.headers["access-control-allow-origin"] == "http://testserver"

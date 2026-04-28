@@ -14,6 +14,10 @@ build/
 htmlcov/
 .mypy_cache/
 .ruff_cache/
+.tmp/
+pytest_tmp_*/
+pytest-cache-files-*/
+pytest_cache_*/
 
 # Node
 node_modules/
