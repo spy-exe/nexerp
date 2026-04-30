@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { CheckCircle2, Clock, Plus, XCircle } from "lucide-react"
+import { CheckCircle2, Plus } from "lucide-react"
 
+import { InlineEdit } from "@/components/shared/InlineEdit"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,6 +17,7 @@ import {
   listReceivables,
   payPayable,
   payReceivable,
+  updateInstallment,
   type Installment,
 } from "@/lib/auth"
 import { currency } from "@/lib/utils"
@@ -36,6 +38,7 @@ export function InstallmentsPanel() {
   const [mode, setMode] = useState<Mode>("receivables")
   const [showForm, setShowForm] = useState(false)
   const [payingId, setPayingId] = useState<string | null>(null)
+  const [inlineError, setInlineError] = useState<string | null>(null)
   const [payForm, setPayForm] = useState({ account_id: "", amount: "", date: today })
   const [form, setForm] = useState({ description: "", total_amount: "", due_date: "" })
 
@@ -47,9 +50,9 @@ export function InstallmentsPanel() {
 
   const createMut = useMutation({
     mutationFn: (payload: unknown) => mode === "receivables" ? createReceivable(payload) : createPayable(payload),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["finance-receivables"] })
-      qc.invalidateQueries({ queryKey: ["finance-payables"] })
+    onSuccess: (installment) => {
+      const targetKey = installment.type === "income" ? ["finance-receivables"] : ["finance-payables"]
+      qc.setQueryData<Installment[]>(targetKey, (current = []) => [installment, ...current])
       qc.invalidateQueries({ queryKey: ["finance-summary"] })
       setShowForm(false)
       setForm({ description: "", total_amount: "", due_date: "" })
@@ -59,14 +62,46 @@ export function InstallmentsPanel() {
   const payMut = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: unknown }) =>
       mode === "receivables" ? payReceivable(id, payload) : payPayable(id, payload),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["finance-receivables"] })
-      qc.invalidateQueries({ queryKey: ["finance-payables"] })
+    onSuccess: (installment) => {
+      updateInstallmentCache(installment)
       qc.invalidateQueries({ queryKey: ["finance-accounts"] })
       qc.invalidateQueries({ queryKey: ["finance-summary"] })
       setPayingId(null)
     },
   })
+
+  const updateMut = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: unknown }) => updateInstallment(id, payload),
+    onSuccess: (installment) => {
+      updateInstallmentCache(installment)
+      qc.invalidateQueries({ queryKey: ["finance-summary"] })
+    },
+    onError: (error) => {
+      setInlineError(error instanceof Error ? error.message : "Falha ao atualizar parcela.")
+    }
+  })
+
+  function updateInstallmentCache(installment: Installment) {
+    const targetKey = installment.type === "income" ? ["finance-receivables"] : ["finance-payables"]
+    qc.setQueryData<Installment[]>(targetKey, (current = []) =>
+      current.map((item) => (item.id === installment.id ? installment : item))
+    )
+  }
+
+  async function saveInstallmentField(inst: Installment, payload: Partial<Installment>) {
+    setInlineError(null)
+    const key = inst.type === "income" ? ["finance-receivables"] : ["finance-payables"]
+    const previous = qc.getQueryData<Installment[]>(key)
+    qc.setQueryData<Installment[]>(key, (current = []) =>
+      current.map((item) => (item.id === inst.id ? { ...item, ...payload } : item))
+    )
+    try {
+      await updateMut.mutateAsync({ id: inst.id, payload })
+    } catch (error) {
+      qc.setQueryData(key, previous)
+      throw error
+    }
+  }
 
   function submitCreate() {
     createMut.mutate({ ...form, type: mode === "receivables" ? "income" : "expense" })
@@ -122,26 +157,58 @@ export function InstallmentsPanel() {
       )}
 
       <div className="divide-y">
+        {inlineError && <p className="pb-3 text-sm text-rose-600">{inlineError}</p>}
         {items.map(inst => {
           const s = STATUS_LABEL[inst.status] ?? STATUS_LABEL.open
           return (
             <div key={inst.id} className="py-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-800">{inst.description}</p>
+                  <p className="text-sm font-medium text-slate-800">
+                    <InlineEdit
+                      value={inst.description}
+                      onSave={(value) => saveInstallmentField(inst, { description: value })}
+                    />
+                  </p>
                   <p className="text-xs text-slate-400">
-                    Vence: {inst.due_date}
+                    Vence:{" "}
+                    <InlineEdit
+                      type="date"
+                      value={inst.due_date}
+                      onSave={(value) => saveInstallmentField(inst, { due_date: value })}
+                    />
                     {inst.person_name ? ` · ${inst.person_name}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-slate-900">{currency(inst.total_amount)}</p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      <InlineEdit
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={inst.total_amount}
+                        displayValue={currency(inst.total_amount)}
+                        onSave={(value) => saveInstallmentField(inst, { total_amount: value })}
+                      />
+                    </p>
                     {inst.paid_amount !== "0.00" && (
                       <p className="text-xs text-slate-500">Pago: {currency(inst.paid_amount)}</p>
                     )}
                   </div>
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.color}`}>{s.label}</span>
+                  <InlineEdit
+                    type="select"
+                    value={inst.status}
+                    displayValue={<span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.color}`}>{s.label}</span>}
+                    options={[
+                      { value: "open", label: "Aberto" },
+                      { value: "partial", label: "Parcial" },
+                      { value: "paid", label: "Pago" },
+                      { value: "overdue", label: "Vencido" },
+                      { value: "cancelled", label: "Cancelado" }
+                    ]}
+                    onSave={(value) => saveInstallmentField(inst, { status: value as Installment["status"] })}
+                  />
                   {inst.status !== "paid" && inst.status !== "cancelled" && (
                     <Button size="sm" variant="outline" onClick={() => {
                       setPayingId(inst.id)

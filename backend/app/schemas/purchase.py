@@ -20,6 +20,11 @@ class PurchaseCreate(BaseModel):
     items: list[PurchaseItemCreate] = Field(min_length=1)
 
 
+class PurchaseUpdate(BaseModel):
+    status: str | None = Field(default=None, pattern="^(draft|confirmed|cancelled)$")
+    notes: str | None = Field(default=None, max_length=500)
+
+
 class PurchaseItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

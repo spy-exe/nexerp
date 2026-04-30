@@ -5,6 +5,7 @@ import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Barcode, CreditCard, Plus, ReceiptText, ShoppingCart, Trash2, Wallet } from "lucide-react"
 
+import { InlineEdit } from "@/components/shared/InlineEdit"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,6 +15,7 @@ import {
   listCustomers,
   listProducts,
   listSales,
+  updateSale,
   type Product,
   type SaleSummary
 } from "@/lib/auth"
@@ -63,6 +65,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
   const [items, setItems] = useState<DraftSaleItem[]>([])
   const [payments, setPayments] = useState<DraftPayment[]>([])
   const [formError, setFormError] = useState<string | null>(null)
+  const [inlineError, setInlineError] = useState<string | null>(null)
 
   const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0), [items])
   const discount = Number(discountAmount || 0)
@@ -72,7 +75,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
 
   const createSaleMutation = useMutation({
     mutationFn: createSale,
-    onSuccess: async () => {
+    onSuccess: async (sale) => {
       setCustomerId("")
       setNotes("")
       setDiscountAmount("0")
@@ -84,8 +87,8 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
       setItems([])
       setPayments([])
       setFormError(null)
+      queryClient.setQueryData<SaleSummary[]>(["sales"], (current = []) => [sale, ...current])
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["sales"] }),
         queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] }),
         queryClient.invalidateQueries({ queryKey: ["balances"] })
       ])
@@ -186,6 +189,24 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
       })),
       payments
     })
+  }
+
+  async function saveSaleField(sale: SaleSummary, payload: Partial<SaleSummary>) {
+    setInlineError(null)
+    const previous = queryClient.getQueryData<SaleSummary[]>(["sales"])
+    queryClient.setQueryData<SaleSummary[]>(["sales"], (current = []) =>
+      current.map((item) => (item.id === sale.id ? { ...item, ...payload } : item))
+    )
+    try {
+      const updated = await updateSale(sale.id, payload)
+      queryClient.setQueryData<SaleSummary[]>(["sales"], (current = []) =>
+        current.map((item) => (item.id === sale.id ? { ...item, ...updated } : item))
+      )
+    } catch (error) {
+      queryClient.setQueryData(["sales"], previous)
+      setInlineError(error instanceof Error ? error.message : "Falha ao atualizar venda.")
+      throw error
+    }
   }
 
   return (
@@ -387,9 +408,10 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             <ReceiptText className="h-5 w-5" />
           </div>
         </div>
+        {inlineError && <p className="mt-3 text-sm text-rose-600">{inlineError}</p>}
         <div className="mt-6 grid gap-3">
           {salesQuery.data?.map((sale) => (
-            <SaleRow key={sale.id} sale={sale} />
+            <SaleRow key={sale.id} sale={sale} onSave={(payload) => saveSaleField(sale, payload)} />
           ))}
           {!salesQuery.data?.length && <p className="text-sm text-slate-500">Nenhuma venda registrada.</p>}
         </div>
@@ -398,7 +420,15 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
   )
 }
 
-function SaleRow({ sale }: { sale: SaleSummary }) {
+function SaleRow({ sale, onSave }: { sale: SaleSummary; onSave: (payload: Partial<SaleSummary>) => Promise<void> }) {
+  const statusOptions = [
+    { value: "draft", label: "Rascunho" },
+    { value: "confirmed", label: "Confirmada" },
+    { value: "cancelled", label: "Cancelada" }
+  ]
+  const statusLabel = statusOptions.find((item) => item.value === sale.status)?.label ?? sale.status
+  const canEditStatus = ["draft", "confirmed"].includes(sale.status)
+
   return (
     <div className="rounded-[24px] border border-line bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -408,6 +438,25 @@ function SaleRow({ sale }: { sale: SaleSummary }) {
             {sale.customer_name || "Consumidor final"} • {formatDateTime(sale.issued_at)}
           </p>
           <p className="mt-1 text-sm text-slate-500">{sale.channel === "pos" ? "PDV" : "Venda assistida"}</p>
+          <p className="mt-2 text-sm text-slate-500">
+            Status{" "}
+            <InlineEdit
+              disabled={!canEditStatus}
+              type="select"
+              value={sale.status}
+              displayValue={statusLabel}
+              options={statusOptions}
+              onSave={(value) => onSave({ status: value })}
+            />
+          </p>
+          <p className="mt-1 text-sm text-slate-500">
+            Obs.{" "}
+            <InlineEdit
+              value={sale.notes ?? ""}
+              displayValue={sale.notes || "sem observação"}
+              onSave={(value) => onSave({ notes: value || null })}
+            />
+          </p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-semibold text-slate-900">{currency(sale.total_amount)}</p>

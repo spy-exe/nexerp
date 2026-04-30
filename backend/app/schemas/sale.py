@@ -30,6 +30,11 @@ class SaleCreate(BaseModel):
     payments: list[SalePaymentCreate] = Field(min_length=1)
 
 
+class SaleUpdate(BaseModel):
+    status: str | None = Field(default=None, pattern="^(draft|confirmed|cancelled)$")
+    notes: str | None = Field(default=None, max_length=500)
+
+
 class SaleItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

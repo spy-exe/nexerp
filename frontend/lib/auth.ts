@@ -64,6 +64,7 @@ export type StockBalance = {
   product_name: string
   warehouse_id: string
   warehouse_name: string
+  warehouse_location?: string | null
   quantity: string
   min_stock: string
 }
@@ -268,8 +269,22 @@ export async function createProduct(payload: unknown) {
   })
 }
 
+export async function updateProduct(productId: string, payload: unknown) {
+  return apiFetch<Product>(`/products/${productId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  })
+}
+
 export async function listBalances() {
   return apiFetch<StockBalance[]>("/stock/balances")
+}
+
+export async function updateWarehouse(warehouseId: string, payload: unknown) {
+  return apiFetch<{ id: string; name: string; location?: string | null; is_default: boolean }>(`/stock/warehouses/${warehouseId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  })
 }
 
 export async function createMovement(payload: unknown) {
@@ -346,6 +361,13 @@ export async function createSale(payload: unknown) {
   })
 }
 
+export async function updateSale(saleId: string, payload: unknown) {
+  return apiFetch<SaleDetail>(`/sales/${saleId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  })
+}
+
 export async function listPurchases() {
   return apiFetch<PurchaseSummary[]>("/purchases")
 }
@@ -357,6 +379,13 @@ export async function getPurchase(purchaseId: string) {
 export async function createPurchase(payload: unknown) {
   return apiFetch<PurchaseDetail>("/purchases", {
     method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updatePurchase(purchaseId: string, payload: unknown) {
+  return apiFetch<PurchaseDetail>(`/purchases/${purchaseId}`, {
+    method: "PATCH",
     body: JSON.stringify(payload)
   })
 }
@@ -489,6 +518,13 @@ export async function createTransaction(payload: unknown) {
   })
 }
 
+export async function updateTransaction(id: string, payload: unknown) {
+  return apiFetch<FinancialTransaction>(`/finance/transactions/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  })
+}
+
 export async function listReceivables(statusFilter?: string) {
   const qs = statusFilter ? `?status=${statusFilter}` : ""
   return apiFetch<Installment[]>(`/finance/receivables${qs}`)
@@ -523,6 +559,13 @@ export async function createPayable(payload: unknown) {
 export async function payPayable(id: string, payload: unknown) {
   return apiFetch<Installment>(`/finance/payables/${id}/pay`, {
     method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateInstallment(id: string, payload: unknown) {
+  return apiFetch<Installment>(`/finance/installments/${id}`, {
+    method: "PATCH",
     body: JSON.stringify(payload)
   })
 }

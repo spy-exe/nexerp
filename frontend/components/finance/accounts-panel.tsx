@@ -35,11 +35,21 @@ export function AccountsPanel() {
 
   const createMut = useMutation({
     mutationFn: createFinancialAccount,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["finance-accounts"] }); setShowForm(false); resetForm() },
+    onSuccess: (account) => {
+      qc.setQueryData<FinancialAccount[]>(["finance-accounts"], (current = []) => [account, ...current])
+      setShowForm(false)
+      resetForm()
+    },
   })
   const updateMut = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: unknown }) => updateFinancialAccount(id, payload),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["finance-accounts"] }); setEditing(null); resetForm() },
+    onSuccess: (account) => {
+      qc.setQueryData<FinancialAccount[]>(["finance-accounts"], (current = []) =>
+        current.map((item) => (item.id === account.id ? account : item))
+      )
+      setEditing(null)
+      resetForm()
+    },
   })
 
   function resetForm() {

@@ -14,12 +14,13 @@ from app.models.party import BusinessParty, PartyKind
 from app.models.product import Product
 from app.models.purchase import Purchase, PurchaseItem
 from app.models.stock import Warehouse
-from app.schemas.purchase import PurchaseCreate
+from app.schemas.purchase import PurchaseCreate, PurchaseUpdate
 from app.services.audit_service import AuditService
 from app.services.stock_service import StockService
 
 
 MONEY_PRECISION = Decimal("0.01")
+EDITABLE_STATUSES = {"draft", "confirmed"}
 
 
 class PurchaseService:
@@ -127,6 +128,45 @@ class PurchaseService:
                 "total_amount": str(purchase.total_amount),
                 "items": [item.model_dump(mode="json") for item in payload.items],
             },
+            ip_address=ip_address,
+        )
+        await self.db.commit()
+        return await self.get(company_id, purchase.id)
+
+    async def update(
+        self,
+        company_id: UUID,
+        purchase_id: UUID,
+        user_id: UUID,
+        payload: PurchaseUpdate,
+        ip_address: str | None,
+    ) -> Purchase:
+        purchase = await self.get(company_id, purchase_id)
+        update_data = payload.model_dump(exclude_unset=True)
+        if not update_data:
+            return purchase
+
+        if "status" in update_data and update_data["status"] != purchase.status:
+            if purchase.status not in EDITABLE_STATUSES:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Status de compra finalizada não pode ser alterado.",
+                )
+
+        previous = {
+            "status": purchase.status,
+            "notes": purchase.notes,
+        }
+        for field, value in update_data.items():
+            setattr(purchase, field, value)
+        self.audit.log(
+            company_id=company_id,
+            user_id=user_id,
+            action="purchases.updated",
+            table_name="purchases",
+            record_id=str(purchase.id),
+            old_data=previous,
+            new_data=payload.model_dump(exclude_unset=True, mode="json"),
             ip_address=ip_address,
         )
         await self.db.commit()

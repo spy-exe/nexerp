@@ -2,20 +2,23 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
+import { InlineEdit } from "@/components/shared/InlineEdit"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { createMovement, listBalances, listProducts } from "@/lib/auth"
+import { createMovement, listBalances, listProducts, updateProduct, updateWarehouse, type StockBalance } from "@/lib/auth"
 import { movementSchema } from "@/lib/validations"
 
 type MovementValues = z.infer<typeof movementSchema>
 
 export default function StockPage() {
   const queryClient = useQueryClient()
+  const [inlineError, setInlineError] = useState<string | null>(null)
   const balancesQuery = useQuery({ queryKey: ["balances"], queryFn: listBalances })
   const productsQuery = useQuery({ queryKey: ["products"], queryFn: listProducts })
   const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting } } = useForm<MovementValues>({
@@ -39,6 +42,30 @@ export default function StockPage() {
 
   async function onSubmit(values: MovementValues) {
     await mutation.mutateAsync(values)
+  }
+
+  async function saveBalanceField(balance: StockBalance, payload: Partial<StockBalance>) {
+    setInlineError(null)
+    const previousBalances = queryClient.getQueryData<StockBalance[]>(["balances"])
+    queryClient.setQueryData<StockBalance[]>(["balances"], (current = []) =>
+      current.map((item) =>
+        item.product_id === balance.product_id && item.warehouse_id === balance.warehouse_id
+          ? { ...item, ...payload }
+          : item
+      )
+    )
+    try {
+      if ("min_stock" in payload) {
+        await updateProduct(balance.product_id, { min_stock: payload.min_stock })
+      }
+      if ("warehouse_location" in payload) {
+        await updateWarehouse(balance.warehouse_id, { location: payload.warehouse_location || null })
+      }
+    } catch (error) {
+      queryClient.setQueryData(["balances"], previousBalances)
+      setInlineError(error instanceof Error ? error.message : "Falha ao atualizar estoque.")
+      throw error
+    }
   }
 
   return (
@@ -85,17 +112,34 @@ export default function StockPage() {
       </Card>
       <Card className="p-6">
         <h2 className="text-xl font-semibold text-slate-900">Saldos atuais</h2>
+        {inlineError && <p className="mt-3 text-sm text-rose-600">{inlineError}</p>}
         <div className="mt-5 grid gap-3">
           {balancesQuery.data?.map((balance) => (
             <div key={`${balance.product_id}:${balance.warehouse_id}`} className="rounded-[24px] border border-line bg-white p-5">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="font-semibold text-slate-900">{balance.product_name}</p>
-                  <p className="mt-1 text-sm text-slate-500">{balance.warehouse_name}</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {balance.warehouse_name} •{" "}
+                    <InlineEdit
+                      value={balance.warehouse_location ?? ""}
+                      displayValue={balance.warehouse_location || "sem localização"}
+                      onSave={(value) => saveBalanceField(balance, { warehouse_location: value || null })}
+                    />
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-semibold text-slate-900">{balance.quantity}</p>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">mínimo {balance.min_stock}</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                    mínimo{" "}
+                    <InlineEdit
+                      type="number"
+                      min="0"
+                      step="0.001"
+                      value={balance.min_stock}
+                      onSave={(value) => saveBalanceField(balance, { min_stock: value })}
+                    />
+                  </p>
                 </div>
               </div>
             </div>

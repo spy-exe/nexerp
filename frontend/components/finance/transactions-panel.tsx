@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ArrowDownCircle, ArrowUpCircle, Download, Plus } from "lucide-react"
 
+import { InlineEdit } from "@/components/shared/InlineEdit"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,6 +14,8 @@ import {
   listFinancialAccounts,
   listFinancialCategories,
   listTransactions,
+  updateTransaction,
+  type FinancialTransaction,
 } from "@/lib/auth"
 import { API_BASE_URL } from "@/lib/api"
 import { currency } from "@/lib/utils"
@@ -29,6 +32,7 @@ export function TransactionsPanel() {
   })
   const [dateTo, setDateTo] = useState(today)
   const [showForm, setShowForm] = useState(false)
+  const [inlineError, setInlineError] = useState<string | null>(null)
   const [form, setForm] = useState({
     account_id: "",
     category_id: "",
@@ -56,6 +60,18 @@ export function TransactionsPanel() {
     },
   })
 
+  const updateMut = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: unknown }) => updateTransaction(id, payload),
+    onSuccess: (transaction) => {
+      qc.setQueryData<FinancialTransaction[]>(["finance-transactions", dateFrom, dateTo], (current = []) =>
+        current.map((item) => (item.id === transaction.id ? transaction : item))
+      )
+    },
+    onError: (error) => {
+      setInlineError(error instanceof Error ? error.message : "Falha ao atualizar transação.")
+    }
+  })
+
   const filteredCats = categories.filter(c => c.type === form.type)
 
   function submit() {
@@ -67,6 +83,21 @@ export function TransactionsPanel() {
       date: form.date,
       description: form.description,
     })
+  }
+
+  async function saveTransactionField(transaction: FinancialTransaction, payload: Partial<FinancialTransaction>) {
+    setInlineError(null)
+    const key = ["finance-transactions", dateFrom, dateTo]
+    const previous = qc.getQueryData<FinancialTransaction[]>(key)
+    qc.setQueryData<FinancialTransaction[]>(key, (current = []) =>
+      current.map((item) => (item.id === transaction.id ? { ...item, ...payload } : item))
+    )
+    try {
+      await updateMut.mutateAsync({ id: transaction.id, payload })
+    } catch (error) {
+      qc.setQueryData(key, previous)
+      throw error
+    }
   }
 
   const downloadReport = async (format: "excel" | "pdf") => {
@@ -179,6 +210,7 @@ export function TransactionsPanel() {
 
       {/* Lista */}
       <div className="divide-y">
+        {inlineError && <p className="pb-3 text-sm text-rose-600">{inlineError}</p>}
         {transactions.map(t => (
           <div key={t.id} className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
@@ -187,9 +219,27 @@ export function TransactionsPanel() {
                 : <ArrowDownCircle className="h-5 w-5 text-red-500 shrink-0" />
               }
               <div>
-                <p className="text-sm font-medium text-slate-800">{t.description}</p>
+                <p className="text-sm font-medium text-slate-800">
+                  <InlineEdit
+                    value={t.description}
+                    onSave={(value) => saveTransactionField(t, { description: value })}
+                  />
+                </p>
                 <p className="text-xs text-slate-400">
                   {t.date} · {t.account_name}{t.category_name ? ` · ${t.category_name}` : ""}
+                </p>
+                <p className="text-xs text-slate-400">
+                  Conciliado{" "}
+                  <InlineEdit
+                    type="select"
+                    value={t.reconciled ? "true" : "false"}
+                    displayValue={t.reconciled ? "sim" : "não"}
+                    options={[
+                      { value: "false", label: "Não" },
+                      { value: "true", label: "Sim" }
+                    ]}
+                    onSave={(value) => saveTransactionField(t, { reconciled: value === "true" })}
+                  />
                 </p>
               </div>
             </div>

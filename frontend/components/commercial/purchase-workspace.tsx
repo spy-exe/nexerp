@@ -5,6 +5,7 @@ import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ClipboardPlus, Plus, ShoppingBasket, Trash2, Truck } from "lucide-react"
 
+import { InlineEdit } from "@/components/shared/InlineEdit"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,6 +15,7 @@ import {
   listProducts,
   listPurchases,
   listSuppliers,
+  updatePurchase,
   type Product,
   type PurchaseSummary
 } from "@/lib/auth"
@@ -39,12 +41,13 @@ export function PurchaseWorkspace() {
   const [productCost, setProductCost] = useState("")
   const [items, setItems] = useState<DraftPurchaseItem[]>([])
   const [formError, setFormError] = useState<string | null>(null)
+  const [inlineError, setInlineError] = useState<string | null>(null)
 
   const total = useMemo(() => items.reduce((sum, item) => sum + item.quantity * item.unit_cost, 0), [items])
 
   const createPurchaseMutation = useMutation({
     mutationFn: createPurchase,
-    onSuccess: async () => {
+    onSuccess: async (purchase) => {
       setSupplierId("")
       setNotes("")
       setSelectedProductId("")
@@ -52,8 +55,8 @@ export function PurchaseWorkspace() {
       setProductCost("")
       setItems([])
       setFormError(null)
+      queryClient.setQueryData<PurchaseSummary[]>(["purchases"], (current = []) => [purchase, ...current])
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["purchases"] }),
         queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] }),
         queryClient.invalidateQueries({ queryKey: ["balances"] })
       ])
@@ -109,6 +112,24 @@ export function PurchaseWorkspace() {
         unit_cost: item.unit_cost
       }))
     })
+  }
+
+  async function savePurchaseField(purchase: PurchaseSummary, payload: Partial<PurchaseSummary>) {
+    setInlineError(null)
+    const previous = queryClient.getQueryData<PurchaseSummary[]>(["purchases"])
+    queryClient.setQueryData<PurchaseSummary[]>(["purchases"], (current = []) =>
+      current.map((item) => (item.id === purchase.id ? { ...item, ...payload } : item))
+    )
+    try {
+      const updated = await updatePurchase(purchase.id, payload)
+      queryClient.setQueryData<PurchaseSummary[]>(["purchases"], (current = []) =>
+        current.map((item) => (item.id === purchase.id ? { ...item, ...updated } : item))
+      )
+    } catch (error) {
+      queryClient.setQueryData(["purchases"], previous)
+      setInlineError(error instanceof Error ? error.message : "Falha ao atualizar compra.")
+      throw error
+    }
   }
 
   return (
@@ -234,9 +255,10 @@ export function PurchaseWorkspace() {
             <Truck className="h-5 w-5" />
           </div>
         </div>
+        {inlineError && <p className="mt-3 text-sm text-rose-600">{inlineError}</p>}
         <div className="mt-6 grid gap-3">
           {purchasesQuery.data?.map((purchase) => (
-            <PurchaseRow key={purchase.id} purchase={purchase} />
+            <PurchaseRow key={purchase.id} purchase={purchase} onSave={(payload) => savePurchaseField(purchase, payload)} />
           ))}
           {!purchasesQuery.data?.length && <p className="text-sm text-slate-500">Nenhuma compra registrada.</p>}
         </div>
@@ -245,7 +267,15 @@ export function PurchaseWorkspace() {
   )
 }
 
-function PurchaseRow({ purchase }: { purchase: PurchaseSummary }) {
+function PurchaseRow({ purchase, onSave }: { purchase: PurchaseSummary; onSave: (payload: Partial<PurchaseSummary>) => Promise<void> }) {
+  const statusOptions = [
+    { value: "draft", label: "Rascunho" },
+    { value: "confirmed", label: "Confirmada" },
+    { value: "cancelled", label: "Cancelada" }
+  ]
+  const statusLabel = statusOptions.find((item) => item.value === purchase.status)?.label ?? purchase.status
+  const canEditStatus = ["draft", "confirmed"].includes(purchase.status)
+
   return (
     <div className="rounded-[24px] border border-line bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -253,6 +283,25 @@ function PurchaseRow({ purchase }: { purchase: PurchaseSummary }) {
           <p className="font-semibold text-slate-900">{purchase.purchase_number}</p>
           <p className="mt-1 text-sm text-slate-500">
             {purchase.supplier_name} • {formatDateTime(purchase.issued_at)}
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            Status{" "}
+            <InlineEdit
+              disabled={!canEditStatus}
+              type="select"
+              value={purchase.status}
+              displayValue={statusLabel}
+              options={statusOptions}
+              onSave={(value) => onSave({ status: value })}
+            />
+          </p>
+          <p className="mt-1 text-sm text-slate-500">
+            Obs.{" "}
+            <InlineEdit
+              value={purchase.notes ?? ""}
+              displayValue={purchase.notes || "sem observação"}
+              onSave={(value) => onSave({ notes: value || null })}
+            />
           </p>
         </div>
         <div className="text-right">

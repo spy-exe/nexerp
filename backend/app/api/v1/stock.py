@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import RequestUser, get_db, require_permission
-from app.schemas.stock import StockBalanceResponse, StockMovementCreate, StockMovementResponse
+from app.schemas.stock import StockBalanceResponse, StockMovementCreate, StockMovementResponse, WarehouseUpdate
 from app.services.stock_service import StockService
 
 router = APIRouter(prefix="/stock", tags=["stock"])
@@ -23,6 +25,7 @@ async def list_balances(
             product_name=balance.product.name,
             warehouse_id=str(balance.warehouse_id),
             warehouse_name=balance.warehouse.name,
+            warehouse_location=balance.warehouse.location,
             quantity=balance.quantity,
             min_stock=balance.product.min_stock,
         )
@@ -39,3 +42,20 @@ async def create_movement(
     service = StockService(db)
     movement = await service.create_movement(current_user.company_id, current_user.id, payload, None)
     return StockMovementResponse.model_validate(movement)
+
+
+@router.patch("/warehouses/{warehouse_id}", summary="Atualizar depósito")
+async def update_warehouse(
+    warehouse_id: UUID,
+    payload: WarehouseUpdate,
+    current_user: RequestUser = Depends(require_permission("stock:adjust")),
+    db: AsyncSession = Depends(get_db),
+):
+    service = StockService(db)
+    warehouse = await service.update_warehouse(current_user.company_id, warehouse_id, current_user.id, payload, None)
+    return {
+        "id": warehouse.id,
+        "name": warehouse.name,
+        "location": warehouse.location,
+        "is_default": warehouse.is_default,
+    }
