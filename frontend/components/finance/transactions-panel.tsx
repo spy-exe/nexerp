@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ArrowDownCircle, ArrowUpCircle, Download, Plus } from "lucide-react"
 
+import { EmptyState } from "@/components/shared/EmptyState"
 import { InlineEdit } from "@/components/shared/InlineEdit"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -259,7 +260,7 @@ export function TransactionsPanel() {
           </div>
         ))}
         {transactions.length === 0 && (
-          <p className="py-6 text-center text-sm text-slate-500">Nenhuma transação no período.</p>
+          <EmptyState title="Nenhuma transação no período" description="Ajuste o filtro ou lance uma nova receita/despesa." />
         )}
       </div>
     </Card>

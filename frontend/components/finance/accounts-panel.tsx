@@ -4,6 +4,8 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Landmark, Plus, Pencil } from "lucide-react"
 
+import { EmptyState } from "@/components/shared/EmptyState"
+import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -134,6 +136,9 @@ export function AccountsPanel() {
             <div>
               <p className="font-medium text-slate-900">{acc.name}</p>
               <p className="text-xs text-slate-500">{ACCOUNT_TYPE_LABEL[acc.type] ?? acc.type}{acc.bank_name ? ` · ${acc.bank_name}` : ""}</p>
+              <div className="mt-2">
+                <StatusBadge status={acc.is_active ? "active" : "archived"} />
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <p className={`text-lg font-semibold ${Number(acc.balance) >= 0 ? "text-emerald-700" : "text-red-700"}`}>
@@ -146,7 +151,9 @@ export function AccountsPanel() {
           </div>
         ))}
         {accounts.length === 0 && (
-          <p className="text-sm text-slate-500 col-span-2">Nenhuma conta cadastrada.</p>
+          <div className="col-span-2">
+            <EmptyState title="Nenhuma conta cadastrada" description="Crie uma conta caixa, banco ou digital para registrar transações." />
+          </div>
         )}
       </div>
     </Card>

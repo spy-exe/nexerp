@@ -7,7 +7,12 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
+import { EmptyState } from "@/components/shared/EmptyState"
 import { InlineEdit } from "@/components/shared/InlineEdit"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -96,6 +101,7 @@ export function PartyManager({
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [editingParty, setEditingParty] = useState<BusinessParty | null>(null)
+  const [pendingArchive, setPendingArchive] = useState<BusinessParty | null>(null)
   const [inlineError, setInlineError] = useState<string | null>(null)
   const partiesQuery = useQuery({ queryKey: [queryKey], queryFn: listQuery })
   const {
@@ -142,6 +148,7 @@ export function PartyManager({
         setEditingParty(null)
         reset(defaultValues)
       }
+      setPendingArchive(null)
       queryClient.setQueryData<BusinessParty[]>([queryKey], (current = []) =>
         current.map((party) => (party.id === archivedParty.id ? archivedParty : party))
       )
@@ -186,8 +193,91 @@ export function PartyManager({
     }
   }
 
+  const columns: Array<DataTableColumn<BusinessParty>> = [
+    {
+      key: "name",
+      label: title,
+      render: (party) => {
+        const Icon = party.person_kind === "company" ? Building2 : UserRound
+        return (
+          <div className="flex items-start gap-3">
+            <div className="rounded-2xl bg-slate-100 p-2 text-slate-600">
+              <Icon className="h-4 w-4" />
+            </div>
+            <div>
+              <InlineEdit value={party.name} onSave={(value) => savePartyField(party, { name: value })} />
+              <p className="mt-1 text-xs text-slate-500">{party.document_number}</p>
+            </div>
+          </div>
+        )
+      }
+    },
+    {
+      key: "email",
+      label: "E-mail",
+      render: (party) => (
+        <InlineEdit
+          value={party.email ?? ""}
+          displayValue={party.email || "sem e-mail"}
+          onSave={(value) => savePartyField(party, { email: value || null })}
+        />
+      )
+    },
+    {
+      key: "address_city",
+      label: "Cidade",
+      render: (party) => (
+        <InlineEdit
+          value={party.address_city ?? ""}
+          displayValue={`${party.address_city || "Cidade não informada"}${party.address_state ? ` / ${party.address_state}` : ""}`}
+          onSave={(value) => savePartyField(party, { address_city: value || null })}
+        />
+      )
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (party) => (
+        <InlineEdit
+          type="select"
+          value={party.is_active ? "active" : "archived"}
+          displayValue={<StatusBadge status={party.is_active ? "active" : "archived"} />}
+          options={[
+            { value: "active", label: "Ativo" },
+            { value: "archived", label: "Arquivado" }
+          ]}
+          onSave={(value) => savePartyField(party, { is_active: value === "active" })}
+        />
+      )
+    },
+    {
+      key: "actions",
+      label: "Ações",
+      render: (party) => (
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" size="icon" onClick={() => handleEdit(party)}>
+            <PencilLine className="h-4 w-4" />
+          </Button>
+          {party.is_active && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={() => setPendingArchive(party)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      )
+    }
+  ]
+
   return (
-    <div className="grid gap-6 xl:grid-cols-[460px_1fr]">
+    <div className="space-y-6">
+      <PageHeader eyebrow={subtitle} title={listTitle} subtitle="Cadastros editáveis com ações inline, alteração de status e confirmação para arquivamento." />
+      <div className="grid gap-6 xl:grid-cols-[460px_1fr]">
       <Card className="p-6">
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">{subtitle}</p>
         <h1 className="mt-3 text-2xl font-semibold">{editingParty ? `Editar ${title.toLowerCase()}` : `Novo ${title.toLowerCase()}`}</h1>
@@ -277,76 +367,29 @@ export function PartyManager({
       <Card className="p-6">
         <h2 className="text-xl font-semibold text-slate-900">{listTitle}</h2>
         {inlineError && <p className="mt-3 text-sm text-rose-600">{inlineError}</p>}
-        <div className="mt-5 grid gap-3">
-          {partiesQuery.data?.map((party) => {
-            const Icon = party.person_kind === "company" ? Building2 : UserRound
-            return (
-              <div key={party.id} className="rounded-2xl border border-slate-200 bg-white p-5">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-2xl bg-slate-100 p-3 text-slate-600">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-900">
-                        <InlineEdit value={party.name} onSave={(value) => savePartyField(party, { name: value })} />
-                      </p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {party.document_number} •{" "}
-                        <InlineEdit
-                          value={party.email ?? ""}
-                          displayValue={party.email || "sem e-mail"}
-                          onSave={(value) => savePartyField(party, { email: value || null })}
-                        />
-                      </p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        <InlineEdit
-                          value={party.address_city ?? ""}
-                          displayValue={party.address_city || "Cidade não informada"}
-                          onSave={(value) => savePartyField(party, { address_city: value || null })}
-                        />
-                        {party.address_state ? ` • ${party.address_state}` : ""}
-                      </p>
-                    </div>
-                  </div>
-                  <InlineEdit
-                    type="select"
-                    value={party.is_active ? "active" : "archived"}
-                    displayValue={
-                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${party.is_active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-                        {party.is_active ? "Ativo" : "Arquivado"}
-                      </span>
-                    }
-                    options={[
-                      { value: "active", label: "Ativo" },
-                      { value: "archived", label: "Arquivado" }
-                    ]}
-                    onSave={(value) => savePartyField(party, { is_active: value === "active" })}
-                  />
-                </div>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <Button type="button" variant="outline" className="gap-2" onClick={() => handleEdit(party)}>
-                    <PencilLine className="h-4 w-4" />
-                    Editar
-                  </Button>
-                  {party.is_active && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="gap-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-                      onClick={() => archivePartyMutation.mutate(party.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Arquivar
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-          {!partiesQuery.data?.length && <p className="text-sm text-slate-500">Nenhum cadastro encontrado.</p>}
+        <div className="mt-5">
+          <DataTable
+            columns={columns}
+            rows={partiesQuery.data ?? []}
+            getRowKey={(party) => party.id}
+            emptyState={<EmptyState title="Nenhum cadastro encontrado" description={`Crie o primeiro ${title.toLowerCase()} para começar a operar.`} />}
+          />
         </div>
       </Card>
+      </div>
+      <ConfirmDialog
+        open={Boolean(pendingArchive)}
+        title="Arquivar cadastro"
+        description={`Arquivar ${pendingArchive?.name ?? "cadastro"}?`}
+        confirmLabel="Arquivar"
+        isConfirming={archivePartyMutation.isPending}
+        onClose={() => setPendingArchive(null)}
+        onConfirm={() => {
+          if (pendingArchive) {
+            archivePartyMutation.mutate(pendingArchive.id)
+          }
+        }}
+      />
     </div>
   )
 }

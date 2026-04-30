@@ -4,7 +4,9 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { CheckCircle2, Plus } from "lucide-react"
 
+import { EmptyState } from "@/components/shared/EmptyState"
 import { InlineEdit } from "@/components/shared/InlineEdit"
+import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -211,7 +213,7 @@ export function InstallmentsPanel() {
                   <InlineEdit
                     type="select"
                     value={inst.status}
-                    displayValue={<span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.color}`}>{s.label}</span>}
+                    displayValue={<StatusBadge status={inst.status} label={s.label} />}
                     options={[
                       { value: "open", label: "Aberto" },
                       { value: "partial", label: "Parcial" },
@@ -264,9 +266,10 @@ export function InstallmentsPanel() {
           )
         })}
         {items.length === 0 && (
-          <p className="py-6 text-center text-sm text-slate-500">
-            {mode === "receivables" ? "Nenhuma conta a receber." : "Nenhuma conta a pagar."}
-          </p>
+          <EmptyState
+            title={mode === "receivables" ? "Nenhuma conta a receber" : "Nenhuma conta a pagar"}
+            description="Crie parcelas para acompanhar vencimento, status e pagamentos."
+          />
         )}
       </div>
     </Card>
