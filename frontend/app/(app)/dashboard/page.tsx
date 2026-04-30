@@ -25,7 +25,7 @@ export default function DashboardPage() {
           const Icon = card.icon
           const value = overview ? currency(overview[card.key]) : currency(0)
           return (
-            <Card key={card.key} className="p-6">
+            <Card key={card.key} className="p-6 transition hover:scale-[1.01]">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-slate-500">{card.label}</p>
                 <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
@@ -40,14 +40,14 @@ export default function DashboardPage() {
 
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <Card className="p-6">
-          <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Radar comercial</p>
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Radar comercial</p>
           <h1 className="mt-3 text-3xl font-semibold text-slate-900">Operação de vendas e compras</h1>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-[24px] bg-slate-950 p-5 text-white">
+            <div className="rounded-2xl bg-slate-950 p-5 text-white">
               <p className="text-sm text-slate-300">Vendas hoje</p>
               <p className="mt-3 text-4xl font-semibold">{overview?.sales_count_today ?? 0}</p>
             </div>
-            <div className="rounded-[24px] bg-amber-50 p-5 text-amber-950">
+            <div className="rounded-2xl bg-amber-50 p-5 text-amber-950">
               <p className="text-sm text-amber-800">Alertas de estoque</p>
               <p className="mt-3 text-4xl font-semibold">{overview?.open_low_stock_alerts ?? 0}</p>
             </div>
@@ -57,7 +57,7 @@ export default function DashboardPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Top clientes</p>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Top clientes</p>
               <h2 className="mt-3 text-2xl font-semibold text-slate-900">Maior volume de compras</h2>
             </div>
             <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
@@ -66,7 +66,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-6 space-y-3">
             {overview?.top_customers.map((customer) => (
-              <div key={customer.id} className="flex items-center justify-between rounded-[24px] border border-line bg-white px-5 py-4">
+              <div key={customer.id} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4">
                 <span className="font-medium text-slate-900">{customer.label}</span>
                 <span className="text-sm font-semibold text-slate-700">{currency(customer.value)}</span>
               </div>
@@ -78,11 +78,11 @@ export default function DashboardPage() {
 
       <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <Card className="p-6">
-          <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Produtos líderes</p>
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Produtos líderes</p>
           <h2 className="mt-3 text-2xl font-semibold text-slate-900">Mais vendidos</h2>
           <div className="mt-6 space-y-3">
             {overview?.top_products.map((product) => (
-              <div key={product.id} className="flex items-center justify-between rounded-[24px] border border-line bg-white px-5 py-4">
+              <div key={product.id} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4">
                 <span className="font-medium text-slate-900">{product.label}</span>
                 <span className="text-sm font-semibold text-slate-700">{quantity(product.value)}</span>
               </div>
@@ -94,7 +94,7 @@ export default function DashboardPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Estoque crítico</p>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Estoque crítico</p>
               <h2 className="mt-3 text-2xl font-semibold text-slate-900">Ação imediata</h2>
             </div>
             <div className="rounded-2xl bg-amber-100 p-3 text-amber-800">
@@ -103,7 +103,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-6 space-y-3">
             {overview?.low_stock_alerts.map((alert) => (
-              <div key={alert.product_id} className="rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4">
+              <div key={alert.product_id} className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
                 <p className="font-medium text-amber-950">{alert.product_name}</p>
                 <p className="mt-2 text-sm text-amber-800">
                   Saldo {quantity(alert.quantity)} • mínimo {quantity(alert.min_stock)}

@@ -5,15 +5,18 @@ import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ClipboardPlus, Plus, ShoppingBasket, Trash2, Truck } from "lucide-react"
 
+import { InlineEdit } from "@/components/shared/InlineEdit"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import {
   createPurchase,
   listProducts,
   listPurchases,
   listSuppliers,
+  updatePurchase,
   type Product,
   type PurchaseSummary
 } from "@/lib/auth"
@@ -28,6 +31,7 @@ type DraftPurchaseItem = {
 
 export function PurchaseWorkspace() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const productsQuery = useQuery({ queryKey: ["products"], queryFn: listProducts })
   const suppliersQuery = useQuery({ queryKey: ["suppliers"], queryFn: listSuppliers })
   const purchasesQuery = useQuery({ queryKey: ["purchases"], queryFn: listPurchases })
@@ -39,12 +43,13 @@ export function PurchaseWorkspace() {
   const [productCost, setProductCost] = useState("")
   const [items, setItems] = useState<DraftPurchaseItem[]>([])
   const [formError, setFormError] = useState<string | null>(null)
+  const [inlineError, setInlineError] = useState<string | null>(null)
 
   const total = useMemo(() => items.reduce((sum, item) => sum + item.quantity * item.unit_cost, 0), [items])
 
   const createPurchaseMutation = useMutation({
     mutationFn: createPurchase,
-    onSuccess: async () => {
+    onSuccess: async (purchase) => {
       setSupplierId("")
       setNotes("")
       setSelectedProductId("")
@@ -52,14 +57,16 @@ export function PurchaseWorkspace() {
       setProductCost("")
       setItems([])
       setFormError(null)
+      queryClient.setQueryData<PurchaseSummary[]>(["purchases"], (current = []) => [purchase, ...current])
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["purchases"] }),
         queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] }),
         queryClient.invalidateQueries({ queryKey: ["balances"] })
       ])
+      toast({ title: "Compra registrada", variant: "success" })
     },
     onError: (error) => {
       setFormError(error instanceof Error ? error.message : "Falha ao registrar compra.")
+      toast({ title: "Erro ao registrar compra", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -111,11 +118,31 @@ export function PurchaseWorkspace() {
     })
   }
 
+  async function savePurchaseField(purchase: PurchaseSummary, payload: Partial<PurchaseSummary>) {
+    setInlineError(null)
+    const previous = queryClient.getQueryData<PurchaseSummary[]>(["purchases"])
+    queryClient.setQueryData<PurchaseSummary[]>(["purchases"], (current = []) =>
+      current.map((item) => (item.id === purchase.id ? { ...item, ...payload } : item))
+    )
+    try {
+      const updated = await updatePurchase(purchase.id, payload)
+      queryClient.setQueryData<PurchaseSummary[]>(["purchases"], (current = []) =>
+        current.map((item) => (item.id === purchase.id ? { ...item, ...updated } : item))
+      )
+      toast({ title: "Compra atualizada", variant: "success" })
+    } catch (error) {
+      queryClient.setQueryData(["purchases"], previous)
+      setInlineError(error instanceof Error ? error.message : "Falha ao atualizar compra.")
+      toast({ title: "Erro ao atualizar compra", description: error instanceof Error ? error.message : undefined, variant: "error" })
+      throw error
+    }
+  }
+
   return (
     <div className="space-y-6">
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <Card className="p-6">
-          <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Abastecimento</p>
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Abastecimento</p>
           <h1 className="mt-3 text-3xl font-semibold text-slate-900">Registrar compra</h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
             Centralize as entradas do estoque por fornecedor, mantendo histórico detalhado de custo, volume e impacto na
@@ -126,7 +153,7 @@ export function PurchaseWorkspace() {
             <div>
               <Label>Produto</Label>
               <select
-                className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm"
+                className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                 value={selectedProductId}
                 onChange={(event) => {
                   setSelectedProductId(event.target.value)
@@ -163,7 +190,7 @@ export function PurchaseWorkspace() {
           <div className="mt-8 grid gap-4 md:grid-cols-[1fr_1fr]">
             <div>
               <Label>Fornecedor</Label>
-              <select className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm" value={supplierId} onChange={(event) => setSupplierId(event.target.value)}>
+              <select className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" value={supplierId} onChange={(event) => setSupplierId(event.target.value)}>
                 <option value="">Selecione</option>
                 {suppliersQuery.data?.map((supplier) => (
                   <option key={supplier.id} value={supplier.id}>
@@ -182,7 +209,7 @@ export function PurchaseWorkspace() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Resumo</p>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Resumo</p>
               <h2 className="mt-3 text-2xl font-semibold text-slate-900">Entrada planejada</h2>
             </div>
             <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
@@ -192,7 +219,7 @@ export function PurchaseWorkspace() {
 
           <div className="mt-6 space-y-3">
             {items.map((item, index) => (
-              <div key={`${item.product_id}-${index}`} className="rounded-[24px] border border-line bg-white p-4">
+              <div key={`${item.product_id}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="font-semibold text-slate-900">{item.product_name}</p>
@@ -209,7 +236,7 @@ export function PurchaseWorkspace() {
             {!items.length && <p className="text-sm text-slate-500">Nenhum item adicionado.</p>}
           </div>
 
-          <div className="mt-6 rounded-[24px] bg-slate-950 p-5 text-white">
+          <div className="mt-6 rounded-2xl bg-slate-950 p-5 text-white">
             <div className="flex items-center justify-between text-sm text-slate-300">
               <span>Total previsto</span>
               <span>{currency(total)}</span>
@@ -217,7 +244,7 @@ export function PurchaseWorkspace() {
           </div>
 
           {formError && <p className="mt-4 text-sm text-rose-600">{formError}</p>}
-          <Button className="mt-6 w-full gap-2" disabled={createPurchaseMutation.isPending} type="button" onClick={handleSubmit}>
+          <Button className="mt-6 w-full gap-2" isLoading={createPurchaseMutation.isPending} type="button" onClick={handleSubmit}>
             <ClipboardPlus className="h-4 w-4" />
             {createPurchaseMutation.isPending ? "Registrando..." : "Registrar compra"}
           </Button>
@@ -227,16 +254,17 @@ export function PurchaseWorkspace() {
       <Card className="p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Histórico</p>
+            <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Histórico</p>
             <h2 className="mt-3 text-2xl font-semibold text-slate-900">Últimas compras</h2>
           </div>
           <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
             <Truck className="h-5 w-5" />
           </div>
         </div>
+        {inlineError && <p className="mt-3 text-sm text-rose-600">{inlineError}</p>}
         <div className="mt-6 grid gap-3">
           {purchasesQuery.data?.map((purchase) => (
-            <PurchaseRow key={purchase.id} purchase={purchase} />
+            <PurchaseRow key={purchase.id} purchase={purchase} onSave={(payload) => savePurchaseField(purchase, payload)} />
           ))}
           {!purchasesQuery.data?.length && <p className="text-sm text-slate-500">Nenhuma compra registrada.</p>}
         </div>
@@ -245,19 +273,46 @@ export function PurchaseWorkspace() {
   )
 }
 
-function PurchaseRow({ purchase }: { purchase: PurchaseSummary }) {
+function PurchaseRow({ purchase, onSave }: { purchase: PurchaseSummary; onSave: (payload: Partial<PurchaseSummary>) => Promise<void> }) {
+  const statusOptions = [
+    { value: "draft", label: "Rascunho" },
+    { value: "confirmed", label: "Confirmada" },
+    { value: "cancelled", label: "Cancelada" }
+  ]
+  const statusLabel = statusOptions.find((item) => item.value === purchase.status)?.label ?? purchase.status
+  const canEditStatus = ["draft", "confirmed"].includes(purchase.status)
+
   return (
-    <div className="rounded-[24px] border border-line bg-white p-5">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="font-semibold text-slate-900">{purchase.purchase_number}</p>
           <p className="mt-1 text-sm text-slate-500">
             {purchase.supplier_name} • {formatDateTime(purchase.issued_at)}
           </p>
+          <p className="mt-2 text-sm text-slate-500">
+            Status{" "}
+            <InlineEdit
+              disabled={!canEditStatus}
+              type="select"
+              value={purchase.status}
+              displayValue={statusLabel}
+              options={statusOptions}
+              onSave={(value) => onSave({ status: value })}
+            />
+          </p>
+          <p className="mt-1 text-sm text-slate-500">
+            Obs.{" "}
+            <InlineEdit
+              value={purchase.notes ?? ""}
+              displayValue={purchase.notes || "sem observação"}
+              onSave={(value) => onSave({ notes: value || null })}
+            />
+          </p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-semibold text-slate-900">{currency(purchase.total_amount)}</p>
-          <Link className="mt-2 inline-flex text-sm font-medium text-teal-700 hover:text-teal-800" href={`/purchases/${purchase.id}`}>
+          <Link className="mt-2 inline-flex text-sm font-medium text-blue-700 hover:text-blue-700" href={`/purchases/${purchase.id}`}>
             Ver detalhes
           </Link>
         </div>

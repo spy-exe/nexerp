@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import RequestUser, get_db, require_permission
-from app.schemas.purchase import PurchaseCreate, PurchaseDetailResponse, PurchaseSummaryResponse
+from app.schemas.purchase import PurchaseCreate, PurchaseDetailResponse, PurchaseSummaryResponse, PurchaseUpdate
 from app.services.purchase_service import PurchaseService
 
 router = APIRouter(prefix="/purchases", tags=["purchases"])
@@ -61,6 +61,21 @@ async def create_purchase(
 ) -> PurchaseDetailResponse:
     service = PurchaseService(db)
     purchase = await service.create(current_user.company_id, current_user.id, payload, None)
+    return PurchaseDetailResponse(
+        **serialize_purchase_summary(purchase).model_dump(),
+        items=purchase.items,
+    )
+
+
+@router.patch("/{purchase_id}", response_model=PurchaseDetailResponse, summary="Atualizar compra")
+async def update_purchase(
+    purchase_id: UUID,
+    payload: PurchaseUpdate,
+    current_user: RequestUser = Depends(require_permission("purchases:update")),
+    db: AsyncSession = Depends(get_db),
+) -> PurchaseDetailResponse:
+    service = PurchaseService(db)
+    purchase = await service.update(current_user.company_id, purchase_id, current_user.id, payload, None)
     return PurchaseDetailResponse(
         **serialize_purchase_summary(purchase).model_dump(),
         items=purchase.items,

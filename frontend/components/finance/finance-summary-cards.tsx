@@ -43,8 +43,8 @@ export function FinanceSummaryCards() {
       label: "A receber",
       value: data?.receivables_open ?? "0",
       icon: Wallet,
-      color: "text-teal-700",
-      bg: "bg-teal-50",
+      color: "text-blue-700",
+      bg: "bg-blue-50",
     },
     {
       label: "A pagar",
@@ -74,7 +74,7 @@ export function FinanceSummaryCards() {
       {cards.map((c) => {
         const Icon = c.icon
         return (
-          <Card key={c.label} className="p-5">
+        <Card key={c.label} className="p-5 transition hover:scale-[1.01]">
             <div className="flex items-center justify-between">
               <p className="text-sm text-slate-500">{c.label}</p>
               <div className={`rounded-xl p-2 ${c.bg}`}>

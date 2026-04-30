@@ -4,15 +4,20 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ArrowDownCircle, ArrowUpCircle, Download, Plus } from "lucide-react"
 
+import { EmptyState } from "@/components/shared/EmptyState"
+import { InlineEdit } from "@/components/shared/InlineEdit"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import {
   createTransaction,
   listFinancialAccounts,
   listFinancialCategories,
   listTransactions,
+  updateTransaction,
+  type FinancialTransaction,
 } from "@/lib/auth"
 import { API_BASE_URL } from "@/lib/api"
 import { currency } from "@/lib/utils"
@@ -20,6 +25,7 @@ import { useAuthStore } from "@/stores/auth-store"
 
 export function TransactionsPanel() {
   const qc = useQueryClient()
+  const { toast } = useToast()
   const accessToken = useAuthStore((state) => state.accessToken)
   const today = new Date().toISOString().split("T")[0]
   const [dateFrom, setDateFrom] = useState(() => {
@@ -29,6 +35,7 @@ export function TransactionsPanel() {
   })
   const [dateTo, setDateTo] = useState(today)
   const [showForm, setShowForm] = useState(false)
+  const [inlineError, setInlineError] = useState<string | null>(null)
   const [form, setForm] = useState({
     account_id: "",
     category_id: "",
@@ -53,7 +60,25 @@ export function TransactionsPanel() {
       qc.invalidateQueries({ queryKey: ["finance-summary"] })
       setShowForm(false)
       setForm(f => ({ ...f, amount: "", description: "", category_id: "" }))
+      toast({ title: "Transação lançada", variant: "success" })
     },
+    onError: (error) => {
+      toast({ title: "Erro ao lançar transação", description: error instanceof Error ? error.message : undefined, variant: "error" })
+    },
+  })
+
+  const updateMut = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: unknown }) => updateTransaction(id, payload),
+    onSuccess: (transaction) => {
+      qc.setQueryData<FinancialTransaction[]>(["finance-transactions", dateFrom, dateTo], (current = []) =>
+        current.map((item) => (item.id === transaction.id ? transaction : item))
+      )
+      toast({ title: "Transação atualizada", variant: "success" })
+    },
+    onError: (error) => {
+      setInlineError(error instanceof Error ? error.message : "Falha ao atualizar transação.")
+      toast({ title: "Erro ao atualizar transação", description: error instanceof Error ? error.message : undefined, variant: "error" })
+    }
   })
 
   const filteredCats = categories.filter(c => c.type === form.type)
@@ -69,11 +94,27 @@ export function TransactionsPanel() {
     })
   }
 
+  async function saveTransactionField(transaction: FinancialTransaction, payload: Partial<FinancialTransaction>) {
+    setInlineError(null)
+    const key = ["finance-transactions", dateFrom, dateTo]
+    const previous = qc.getQueryData<FinancialTransaction[]>(key)
+    qc.setQueryData<FinancialTransaction[]>(key, (current = []) =>
+      current.map((item) => (item.id === transaction.id ? { ...item, ...payload } : item))
+    )
+    try {
+      await updateMut.mutateAsync({ id: transaction.id, payload })
+    } catch (error) {
+      qc.setQueryData(key, previous)
+      throw error
+    }
+  }
+
   const downloadReport = async (format: "excel" | "pdf") => {
     const response = await fetch(`${API_BASE_URL}/finance/reports/transactions/${format}?date_from=${dateFrom}&date_to=${dateTo}`, {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
     })
     if (!response.ok) {
+      toast({ title: "Erro ao exportar relatório", variant: "error" })
       return
     }
     const blob = await response.blob()
@@ -83,6 +124,7 @@ export function TransactionsPanel() {
     link.download = format === "excel" ? "transacoes.xlsx" : "transacoes.pdf"
     link.click()
     URL.revokeObjectURL(url)
+    toast({ title: "Relatório exportado", variant: "success" })
   }
   const exportExcel = () => {
     void downloadReport("excel")
@@ -126,7 +168,7 @@ export function TransactionsPanel() {
           <div>
             <Label>Tipo</Label>
             <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+              className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
               value={form.type}
               onChange={e => setForm(f => ({ ...f, type: e.target.value, category_id: "" }))}
             >
@@ -137,7 +179,7 @@ export function TransactionsPanel() {
           <div>
             <Label>Conta</Label>
             <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+              className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
               value={form.account_id}
               onChange={e => setForm(f => ({ ...f, account_id: e.target.value }))}
             >
@@ -148,7 +190,7 @@ export function TransactionsPanel() {
           <div>
             <Label>Categoria</Label>
             <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+              className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
               value={form.category_id}
               onChange={e => setForm(f => ({ ...f, category_id: e.target.value }))}
             >
@@ -170,7 +212,7 @@ export function TransactionsPanel() {
           </div>
           <div className="sm:col-span-2 flex gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancelar</Button>
-            <Button size="sm" onClick={submit} disabled={!form.account_id || !form.amount || !form.description}>
+            <Button size="sm" onClick={submit} disabled={!form.account_id || !form.amount || !form.description} isLoading={createMut.isPending}>
               Lançar
             </Button>
           </div>
@@ -179,6 +221,7 @@ export function TransactionsPanel() {
 
       {/* Lista */}
       <div className="divide-y">
+        {inlineError && <p className="pb-3 text-sm text-rose-600">{inlineError}</p>}
         {transactions.map(t => (
           <div key={t.id} className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
@@ -187,9 +230,27 @@ export function TransactionsPanel() {
                 : <ArrowDownCircle className="h-5 w-5 text-red-500 shrink-0" />
               }
               <div>
-                <p className="text-sm font-medium text-slate-800">{t.description}</p>
+                <p className="text-sm font-medium text-slate-800">
+                  <InlineEdit
+                    value={t.description}
+                    onSave={(value) => saveTransactionField(t, { description: value })}
+                  />
+                </p>
                 <p className="text-xs text-slate-400">
                   {t.date} · {t.account_name}{t.category_name ? ` · ${t.category_name}` : ""}
+                </p>
+                <p className="text-xs text-slate-400">
+                  Conciliado{" "}
+                  <InlineEdit
+                    type="select"
+                    value={t.reconciled ? "true" : "false"}
+                    displayValue={t.reconciled ? "sim" : "não"}
+                    options={[
+                      { value: "false", label: "Não" },
+                      { value: "true", label: "Sim" }
+                    ]}
+                    onSave={(value) => saveTransactionField(t, { reconciled: value === "true" })}
+                  />
                 </p>
               </div>
             </div>
@@ -199,7 +260,7 @@ export function TransactionsPanel() {
           </div>
         ))}
         {transactions.length === 0 && (
-          <p className="py-6 text-center text-sm text-slate-500">Nenhuma transação no período.</p>
+          <EmptyState title="Nenhuma transação no período" description="Ajuste o filtro ou lance uma nova receita/despesa." />
         )}
       </div>
     </Card>

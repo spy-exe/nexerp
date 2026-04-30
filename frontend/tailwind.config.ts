@@ -31,8 +31,9 @@ const config: Config = {
         xl2: "1.5rem"
       },
       fontFamily: {
-        sans: ["var(--font-manrope)"],
-        mono: ["var(--font-space-mono)"]
+        sans: ["var(--font-sans)"],
+        display: ["var(--font-display)"],
+        mono: ["var(--font-mono-stack)"]
       }
     }
   },

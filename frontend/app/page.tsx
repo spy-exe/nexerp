@@ -34,9 +34,9 @@ export default function HomePage() {
       <section className="relative px-6 py-8 md:px-12">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(20,184,166,0.24),transparent_28%),radial-gradient(circle_at_86%_16%,rgba(245,158,11,0.24),transparent_24%),linear-gradient(135deg,#f9f5ea_0%,#eef7f4_48%,#fffaf0_100%)]" />
         <div className="relative mx-auto max-w-7xl">
-          <nav className="flex items-center justify-between rounded-full border border-white/70 bg-white/60 px-5 py-3 shadow-soft backdrop-blur">
+          <nav className="flex items-center justify-between rounded-full border border-white/70 bg-white/60 px-5 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] backdrop-blur">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.35em] text-teal-700">NexERP</p>
+              <p className="font-mono text-xs uppercase tracking-[0.35em] text-blue-700">NexERP</p>
               <p className="text-xs text-slate-500">Open source para PMEs brasileiras</p>
             </div>
             <div className="flex gap-3">
@@ -51,7 +51,7 @@ export default function HomePage() {
 
           <div className="grid gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
             <div>
-              <div className="inline-flex rounded-full border border-teal-200 bg-white/70 px-4 py-2 text-sm font-medium text-teal-800">
+              <div className="inline-flex rounded-full border border-blue-200 bg-white/70 px-4 py-2 text-sm font-medium text-blue-700">
                 v1.0.0 pronto para operação interna, homologação fiscal e evolução comunitária.
               </div>
               <h1 className="mt-7 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.05em] text-slate-950 md:text-7xl">
@@ -74,8 +74,8 @@ export default function HomePage() {
             </div>
 
             <Card className="relative overflow-hidden border-0 bg-slate-950 p-4 text-white shadow-2xl">
-              <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-teal-400/20 blur-3xl" />
-              <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5">
+              <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-blue-400/20 blur-3xl" />
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-mono text-xs uppercase tracking-[0.3em] text-cyan-200">Painel operacional</p>
@@ -88,14 +88,14 @@ export default function HomePage() {
                 </div>
                 <div className="mt-6 grid gap-3 md:grid-cols-2">
                   {modules.map(({ title, description, icon: Icon }) => (
-                    <div key={title} className="rounded-[22px] border border-white/10 bg-white/[0.06] p-4">
+                    <div key={title} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
                       <Icon className="h-5 w-5 text-cyan-200" />
                       <p className="mt-4 font-semibold">{title}</p>
                       <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 rounded-[22px] border border-amber-200/20 bg-amber-300/10 p-4">
+                <div className="mt-4 rounded-2xl border border-amber-200/20 bg-amber-300/10 p-4">
                   <div className="flex items-center gap-3">
                     <Barcode className="h-5 w-5 text-amber-200" />
                     <p className="font-semibold text-amber-50">PDV com leitor USB</p>
@@ -111,7 +111,7 @@ export default function HomePage() {
       <section className="px-6 pb-20 md:px-12">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.8fr_1.2fr]">
           <Card className="bg-white/75 p-8">
-            <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-teal-50 text-teal-700">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <h2 className="mt-6 text-3xl font-semibold tracking-[-0.03em] text-slate-950">Base segura antes do primeiro cliente.</h2>
@@ -121,8 +121,8 @@ export default function HomePage() {
           </Card>
           <div className="grid gap-4 md:grid-cols-2">
             {guarantees.map((item) => (
-              <div key={item} className="rounded-[28px] border border-white/80 bg-white/70 p-5 shadow-soft">
-                <LockKeyhole className="h-5 w-5 text-teal-700" />
+              <div key={item} className="rounded-2xl border border-white/80 bg-white/70 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+                <LockKeyhole className="h-5 w-5 text-blue-700" />
                 <p className="mt-4 font-medium text-slate-900">{item}</p>
               </div>
             ))}

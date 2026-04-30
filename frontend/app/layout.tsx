@@ -1,30 +1,33 @@
 import type { Metadata } from "next"
-import { Manrope, Space_Mono } from "next/font/google"
+import { Inter, JetBrains_Mono } from "next/font/google"
 
 import { Providers } from "@/components/providers"
 
 import "./globals.css"
 
-const manrope = Manrope({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-manrope"
+  variable: "--font-inter"
 })
 
-const spaceMono = Space_Mono({
+const mono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-space-mono",
-  weight: ["400", "700"]
+  variable: "--font-jetbrains-mono",
+  weight: ["400", "600"]
 })
 
 export const metadata: Metadata = {
   title: "NexERP | ERP open source brasileiro",
-  description: "ERP open source para PMEs brasileiras com comercial, financeiro, estoque, fiscal, auditoria e permissões."
+  description: "ERP open source para PMEs brasileiras com comercial, financeiro, estoque, fiscal, auditoria e permissões.",
+  icons: {
+    icon: "/favicon.svg"
+  }
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
-      <body className={`${manrope.variable} ${spaceMono.variable} font-sans antialiased`}>
+    <html lang="pt-BR" data-scroll-behavior="smooth">
+      <body className={`${inter.variable} ${mono.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

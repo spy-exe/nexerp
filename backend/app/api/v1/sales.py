@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import RequestUser, get_db, require_permission
-from app.schemas.sale import SaleCreate, SaleDetailResponse, SaleSummaryResponse
+from app.schemas.sale import SaleCreate, SaleDetailResponse, SaleSummaryResponse, SaleUpdate
 from app.services.sale_service import SaleService
 
 router = APIRouter(prefix="/sales", tags=["sales"])
@@ -65,6 +65,22 @@ async def create_sale(
 ) -> SaleDetailResponse:
     service = SaleService(db)
     sale = await service.create(current_user.company_id, current_user.id, payload, None)
+    return SaleDetailResponse(
+        **serialize_sale_summary(sale).model_dump(),
+        items=sale.items,
+        payments=sale.payments,
+    )
+
+
+@router.patch("/{sale_id}", response_model=SaleDetailResponse, summary="Atualizar venda")
+async def update_sale(
+    sale_id: UUID,
+    payload: SaleUpdate,
+    current_user: RequestUser = Depends(require_permission("sales:update")),
+    db: AsyncSession = Depends(get_db),
+) -> SaleDetailResponse:
+    service = SaleService(db)
+    sale = await service.update(current_user.company_id, sale_id, current_user.id, payload, None)
     return SaleDetailResponse(
         **serialize_sale_summary(sale).model_dump(),
         items=sale.items,
