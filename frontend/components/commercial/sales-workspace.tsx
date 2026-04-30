@@ -213,13 +213,13 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
     <div className="space-y-6">
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <Card className="p-6">
-          <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">{subtitle}</p>
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">{subtitle}</p>
           <h1 className="mt-3 text-3xl font-semibold text-slate-900">{title}</h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">{description}</p>
 
           {channel === "pos" && (
-            <form className="mt-8 rounded-[24px] border border-teal-200 bg-teal-50 p-4" onSubmit={handleBarcodeSubmit}>
-              <Label className="flex items-center gap-2 text-teal-900">
+            <form className="mt-8 rounded-2xl border border-blue-200 bg-blue-50 p-4" onSubmit={handleBarcodeSubmit}>
+              <Label className="flex items-center gap-2 text-blue-900">
                 <Barcode className="h-4 w-4" />
                 Leitor USB / código de barras
               </Label>
@@ -235,7 +235,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
                   Adicionar
                 </Button>
               </div>
-              <p className="mt-2 text-xs text-teal-800">
+              <p className="mt-2 text-xs text-blue-700">
                 Leitores USB funcionam como teclado: o Enter finaliza a leitura e adiciona 1 unidade ao carrinho.
               </p>
             </form>
@@ -245,7 +245,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             <div>
               <Label>Produto</Label>
               <select
-                className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm"
+                className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                 value={selectedProductId}
                 onChange={(event) => {
                   setSelectedProductId(event.target.value)
@@ -282,7 +282,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
           <div className="mt-8 grid gap-4 md:grid-cols-[1fr_180px_160px_auto]">
             <div>
               <Label>Cliente</Label>
-              <select className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm" value={customerId} onChange={(event) => setCustomerId(event.target.value)}>
+              <select className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" value={customerId} onChange={(event) => setCustomerId(event.target.value)}>
                 <option value="">Consumidor final</option>
                 {customersQuery.data?.map((customer) => (
                   <option key={customer.id} value={customer.id}>
@@ -294,7 +294,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             <div>
               <Label>Pagamento</Label>
               <select
-                className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm"
+                className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                 value={selectedPaymentMethod}
                 onChange={(event) => setSelectedPaymentMethod(event.target.value as DraftPayment["method"])}
               >
@@ -331,7 +331,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Resumo</p>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Resumo</p>
               <h2 className="mt-3 text-2xl font-semibold text-slate-900">Carrinho atual</h2>
             </div>
             <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
@@ -341,7 +341,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
 
           <div className="mt-6 space-y-3">
             {items.map((item, index) => (
-              <div key={`${item.product_id}-${index}`} className="rounded-[24px] border border-line bg-white p-4">
+              <div key={`${item.product_id}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="font-semibold text-slate-900">{item.product_name}</p>
@@ -358,7 +358,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             {!items.length && <p className="text-sm text-slate-500">Nenhum item adicionado.</p>}
           </div>
 
-          <div className="mt-6 space-y-2 rounded-[24px] bg-slate-950 p-5 text-white">
+          <div className="mt-6 space-y-2 rounded-2xl bg-slate-950 p-5 text-white">
             <div className="flex items-center justify-between text-sm text-slate-300">
               <span>Subtotal</span>
               <span>{currency(subtotal)}</span>
@@ -383,7 +383,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
 
           <div className="mt-5 space-y-2">
             {payments.map((payment, index) => (
-              <div key={`${payment.method}-${index}`} className="flex items-center justify-between rounded-2xl border border-line px-4 py-3 text-sm">
+              <div key={`${payment.method}-${index}`} className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm">
                 <span>{paymentLabels[payment.method]}</span>
                 <span className="font-semibold text-slate-900">{currency(payment.amount)}</span>
               </div>
@@ -401,7 +401,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
       <Card className="p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Histórico</p>
+            <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Histórico</p>
             <h2 className="mt-3 text-2xl font-semibold text-slate-900">Últimas vendas</h2>
           </div>
           <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
@@ -430,7 +430,7 @@ function SaleRow({ sale, onSave }: { sale: SaleSummary; onSave: (payload: Partia
   const canEditStatus = ["draft", "confirmed"].includes(sale.status)
 
   return (
-    <div className="rounded-[24px] border border-line bg-white p-5">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="font-semibold text-slate-900">{sale.sale_number}</p>
@@ -460,7 +460,7 @@ function SaleRow({ sale, onSave }: { sale: SaleSummary; onSave: (payload: Partia
         </div>
         <div className="text-right">
           <p className="text-2xl font-semibold text-slate-900">{currency(sale.total_amount)}</p>
-          <Link className="mt-2 inline-flex text-sm font-medium text-teal-700 hover:text-teal-800" href={`/sales/${sale.id}`}>
+          <Link className="mt-2 inline-flex text-sm font-medium text-blue-700 hover:text-blue-700" href={`/sales/${sale.id}`}>
             Ver detalhes
           </Link>
         </div>

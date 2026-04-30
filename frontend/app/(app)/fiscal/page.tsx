@@ -41,7 +41,7 @@ export default function FiscalPage() {
     <div className="space-y-6">
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <Card className="p-6">
-          <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Fiscal</p>
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Fiscal</p>
           <h1 className="mt-3 text-3xl font-semibold text-slate-900">NF-e em homologação</h1>
           <p className="mt-4 text-sm leading-7 text-slate-600">
             Emissão modelo 55 com chave de acesso, XML, protocolo controlado e endpoint SEFAZ de homologação isolado para troca pelo cliente SOAP com certificado.
@@ -50,7 +50,7 @@ export default function FiscalPage() {
           <div className="mt-8 space-y-3">
             <Label>Venda para emissão</Label>
             <select
-              className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm"
+              className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
               value={saleId}
               onChange={(event) => setSaleId(event.target.value)}
             >
@@ -72,7 +72,7 @@ export default function FiscalPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Documentos</p>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Documentos</p>
               <h2 className="mt-3 text-2xl font-semibold text-slate-900">Últimas NF-e</h2>
             </div>
             <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
@@ -81,7 +81,7 @@ export default function FiscalPage() {
           </div>
           <div className="mt-6 space-y-3">
             {fiscalQuery.data?.map((document) => (
-              <div key={document.id} className="rounded-[24px] border border-line bg-white p-4">
+              <div key={document.id} className="rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="flex flex-wrap justify-between gap-3">
                   <div>
                     <p className="font-semibold text-slate-900">NF-e {document.series}/{document.number}</p>
@@ -90,7 +90,7 @@ export default function FiscalPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-slate-900">{currency(document.total_amount)}</p>
-                    <p className="mt-1 text-xs uppercase text-teal-700">{document.status}</p>
+                    <p className="mt-1 text-xs uppercase text-blue-700">{document.status}</p>
                     <p className="mt-1 text-xs text-slate-500">{formatDateTime(document.issued_at)}</p>
                   </div>
                 </div>

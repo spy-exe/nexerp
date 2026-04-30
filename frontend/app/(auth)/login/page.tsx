@@ -41,7 +41,7 @@ export default function LoginPage() {
 
   return (
     <Card className="w-full max-w-xl p-8">
-      <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Acesso</p>
+      <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Acesso</p>
       <h1 className="mt-4 text-3xl font-semibold text-slate-900">Entrar no NexERP</h1>
       <p className="mt-3 text-sm text-slate-500">Use o usuário administrador criado no cadastro inicial da empresa.</p>
 
@@ -63,10 +63,10 @@ export default function LoginPage() {
       </form>
 
       <div className="mt-6 flex items-center justify-between text-sm text-slate-500">
-        <Link href="/forgot-password" className="text-teal-700 hover:underline">
+        <Link href="/forgot-password" className="text-blue-700 hover:underline">
           Esqueci minha senha
         </Link>
-        <Link href="/register" className="text-teal-700 hover:underline">
+        <Link href="/register" className="text-blue-700 hover:underline">
           Criar empresa
         </Link>
       </div>

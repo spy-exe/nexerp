@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <Card className="w-full max-w-xl p-8">
-      <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Recuperação</p>
+      <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Recuperação</p>
       <h1 className="mt-4 text-3xl font-semibold text-slate-900">Solicitar redefinição de senha</h1>
       <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
         <div>
@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
         </Button>
       </form>
       <div className="mt-6">
-        <Link href="/login" className="text-sm text-teal-700 hover:underline">
+        <Link href="/login" className="text-sm text-blue-700 hover:underline">
           Voltar para login
         </Link>
       </div>

@@ -76,7 +76,7 @@ export default function ProductsPage() {
   return (
     <div className="grid gap-6 xl:grid-cols-[430px_1fr]">
       <Card className="p-6">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Catálogo</p>
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Catálogo</p>
         <h1 className="mt-3 text-2xl font-semibold">Novo produto</h1>
         <form className="mt-6 grid gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-2 gap-4">
@@ -99,7 +99,7 @@ export default function ProductsPage() {
           </div>
           <div>
             <Label>Categoria</Label>
-            <select className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm" {...register("category_id")}>
+            <select className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" {...register("category_id")}>
               <option value="">Sem categoria</option>
               {categoriesQuery.data?.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -133,7 +133,7 @@ export default function ProductsPage() {
         {inlineError && <p className="mt-3 text-sm text-rose-600">{inlineError}</p>}
         <div className="mt-5 grid gap-3">
           {productsQuery.data?.map((product) => (
-            <div key={product.id} className="rounded-[24px] border border-line bg-white p-5">
+            <div key={product.id} className="rounded-2xl border border-slate-200 bg-white p-5">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="font-semibold text-slate-900">

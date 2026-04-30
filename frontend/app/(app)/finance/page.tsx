@@ -9,7 +9,7 @@ export default function FinancePage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Financeiro</p>
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Financeiro</p>
         <h1 className="mt-1 text-2xl font-semibold text-slate-900">Visão geral financeira</h1>
         <p className="mt-1 text-sm text-slate-500">
           Saldo em contas, receitas, despesas, contas a pagar e a receber — tudo em um lugar.

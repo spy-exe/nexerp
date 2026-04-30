@@ -90,7 +90,7 @@ export function AccountsPanel() {
           <div>
             <Label>Tipo</Label>
             <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+              className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
               value={form.type}
               onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
             >

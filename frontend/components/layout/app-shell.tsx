@@ -37,7 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [accessToken, company?.onboarding_completed, queryClient, router])
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.08),_transparent_35%),linear-gradient(180deg,_#f6f1e8_0%,_#f8fafc_60%)]">
+    <div className="min-h-screen bg-slate-50">
       <div className="mx-auto flex min-h-screen max-w-[1600px]">
         <AppSidebar pathname={pathname} />
         <main className="flex-1 px-5 py-5 md:px-8 md:py-8">

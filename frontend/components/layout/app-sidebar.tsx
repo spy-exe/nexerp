@@ -24,21 +24,31 @@ import { prefetchAppRoute } from "@/lib/app-prefetch"
 import { cn } from "@/lib/utils"
 
 const items = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/customers", label: "Clientes", icon: Users },
-  { href: "/suppliers", label: "Fornecedores", icon: Truck },
-  { href: "/sales", label: "Vendas", icon: ReceiptText },
-  { href: "/purchases", label: "Compras", icon: ShoppingBasket },
-  { href: "/pos", label: "PDV", icon: ShoppingCart },
-  { href: "/products", label: "Produtos", icon: Package },
-  { href: "/categories", label: "Categorias", icon: ListTree },
-  { href: "/stock", label: "Estoque", icon: Boxes },
-  { href: "/finance", label: "Financeiro", icon: Wallet },
-  { href: "/fiscal", label: "Fiscal", icon: FileText },
-  { href: "/reports", label: "Relatórios", icon: ChartColumn },
-  { href: "/onboarding", label: "Onboarding", icon: ChartColumn },
-  { href: "/settings/permissions", label: "Permissões", icon: ShieldCheck },
-  { href: "/settings", label: "Configurações", icon: Settings2 }
+  [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  ],
+  [
+    { href: "/customers", label: "Clientes", icon: Users },
+    { href: "/suppliers", label: "Fornecedores", icon: Truck },
+    { href: "/sales", label: "Vendas", icon: ReceiptText },
+    { href: "/purchases", label: "Compras", icon: ShoppingBasket },
+    { href: "/pos", label: "PDV", icon: ShoppingCart },
+  ],
+  [
+    { href: "/products", label: "Produtos", icon: Package },
+    { href: "/categories", label: "Categorias", icon: ListTree },
+    { href: "/stock", label: "Estoque", icon: Boxes },
+  ],
+  [
+    { href: "/finance", label: "Financeiro", icon: Wallet },
+    { href: "/fiscal", label: "Fiscal", icon: FileText },
+    { href: "/reports", label: "Relatórios", icon: ChartColumn },
+  ],
+  [
+    { href: "/onboarding", label: "Onboarding", icon: ChartColumn },
+    { href: "/settings/permissions", label: "Permissões", icon: ShieldCheck },
+    { href: "/settings", label: "Configurações", icon: Settings2 },
+  ],
 ]
 
 export function AppSidebar({ pathname }: { pathname: string }) {
@@ -46,32 +56,40 @@ export function AppSidebar({ pathname }: { pathname: string }) {
   const queryClient = useQueryClient()
 
   return (
-    <aside className="hidden w-72 shrink-0 flex-col border-r border-white/50 bg-[#0f172a] px-6 py-8 text-white lg:flex">
-      <div className="mb-10">
-        <p className="font-mono text-xs uppercase tracking-[0.35em] text-cyan-200/80">NexERP</p>
-        <h1 className="mt-3 text-2xl font-semibold">Operação ERP</h1>
-        <p className="mt-2 text-sm text-slate-300">Comercial, financeiro, fiscal e governança em uma base multi-tenant.</p>
+    <aside className="hidden w-60 shrink-0 flex-col border-r border-slate-200 bg-white px-4 py-6 text-slate-700 lg:flex">
+      <div className="mb-6 px-2">
+        <p className="font-mono text-xs uppercase tracking-[0.35em] text-blue-700">NexERP</p>
+        <h1 className="font-display mt-3 text-xl font-semibold text-slate-950">Operação ERP</h1>
+        <p className="mt-2 text-xs leading-5 text-slate-500">Comercial, financeiro, fiscal e governança multi-tenant.</p>
       </div>
-      <nav className="space-y-2">
-        {items.map((item) => {
-          const Icon = item.icon
-          const active = item.href === "/settings" ? pathname === item.href : pathname.startsWith(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onFocus={() => prefetchAppRoute(router, queryClient, item.href)}
-              onMouseEnter={() => prefetchAppRoute(router, queryClient, item.href)}
-              className={cn(
-                "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition",
-                active ? "bg-white text-slate-900" : "text-slate-300 hover:bg-white/10 hover:text-white"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          )
-        })}
+      <nav className="space-y-4">
+        {items.map((group, groupIndex) => (
+          <div key={groupIndex} className={cn(groupIndex > 0 && "border-t border-slate-100 pt-4")}>
+            <div className="space-y-1">
+              {group.map((item) => {
+                const Icon = item.icon
+                const active = item.href === "/settings" ? pathname === item.href : pathname.startsWith(item.href)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onFocus={() => prefetchAppRoute(router, queryClient, item.href)}
+                    onMouseEnter={() => prefetchAppRoute(router, queryClient, item.href)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg border-l-[3px] px-3 py-2.5 text-sm transition",
+                      active
+                        ? "border-blue-600 bg-blue-50 font-semibold text-blue-700"
+                        : "border-transparent text-slate-600 hover:bg-slate-50"
+                    )}
+                  >
+                    <Icon className="h-[18px] w-[18px]" />
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
     </aside>
   )

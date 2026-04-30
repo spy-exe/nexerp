@@ -65,7 +65,7 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,_#f7f3eb_0%,_#fbfdff_100%)] px-6 py-8">
       <Card className="mx-auto max-w-4xl p-8">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Onboarding</p>
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Onboarding</p>
         <h1 className="mt-4 text-3xl font-semibold text-slate-900">Completar dados operacionais da empresa</h1>
         <p className="mt-3 text-sm text-slate-500">
           Configure endereço, regime tributário e dados básicos para liberar a operação diária.

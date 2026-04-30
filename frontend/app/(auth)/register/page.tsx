@@ -42,7 +42,7 @@ export default function RegisterPage() {
 
   return (
     <Card className="w-full max-w-3xl p-8">
-      <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Onboarding Inicial</p>
+      <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Onboarding Inicial</p>
       <h1 className="mt-4 text-3xl font-semibold text-slate-900">Cadastrar empresa e administrador</h1>
       <form className="mt-8 grid gap-5 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
         <div>
@@ -86,7 +86,7 @@ export default function RegisterPage() {
         </div>
         {errors.root && <p className="md:col-span-2 text-sm text-rose-600">{errors.root.message}</p>}
         <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-4 pt-2">
-          <Link href="/login" className="text-sm text-teal-700 hover:underline">
+          <Link href="/login" className="text-sm text-blue-700 hover:underline">
             Já tenho acesso
           </Link>
           <Button disabled={isSubmitting} type="submit">

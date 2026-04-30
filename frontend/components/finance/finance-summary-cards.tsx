@@ -43,8 +43,8 @@ export function FinanceSummaryCards() {
       label: "A receber",
       value: data?.receivables_open ?? "0",
       icon: Wallet,
-      color: "text-teal-700",
-      bg: "bg-teal-50",
+      color: "text-blue-700",
+      bg: "bg-blue-50",
     },
     {
       label: "A pagar",

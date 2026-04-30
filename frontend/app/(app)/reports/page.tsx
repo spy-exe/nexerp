@@ -15,7 +15,7 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Relatórios</p>
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Relatórios</p>
         <h1 className="mt-1 text-2xl font-semibold text-slate-900">Relatórios avançados</h1>
         <p className="mt-1 text-sm text-slate-500">Vendas, estoque e financeiro consolidados por tenant.</p>
       </div>
@@ -52,13 +52,13 @@ export default function ReportsPage() {
         <Header icon={Boxes} title="Estoque crítico" />
         <div className="mt-6 grid gap-3">
           {stockQuery.data?.items.map((item) => (
-            <div key={`${item.product_id}-${item.warehouse_id}`} className="rounded-[24px] border border-line bg-white p-4">
+            <div key={`${item.product_id}-${item.warehouse_id}`} className="rounded-2xl border border-slate-200 bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold text-slate-900">{item.product_name}</p>
                   <p className="mt-1 text-sm text-slate-500">{item.sku} • {item.warehouse_name}</p>
                 </div>
-                <p className={item.status === "low_stock" ? "font-semibold text-amber-700" : "font-semibold text-teal-700"}>
+                <p className={item.status === "low_stock" ? "font-semibold text-amber-700" : "font-semibold text-blue-700"}>
                   {quantity(item.quantity)} / mínimo {quantity(item.min_stock)}
                 </p>
               </div>
@@ -79,7 +79,7 @@ function Metric({ icon: Icon, label, value }: { icon: typeof TrendingUp; label: 
           <p className="text-sm text-slate-500">{label}</p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">{value}</p>
         </div>
-        <div className="rounded-2xl bg-teal-50 p-3 text-teal-700">
+        <div className="rounded-2xl bg-blue-50 p-3 text-blue-700">
           <Icon className="h-5 w-5" />
         </div>
       </div>
@@ -100,7 +100,7 @@ function Header({ icon: Icon, title }: { icon: typeof TrendingUp; title: string 
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-line bg-white px-4 py-3 text-sm">
+    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm">
       <span className="font-medium text-slate-800">{label}</span>
       <span className="text-slate-500">{value}</span>
     </div>

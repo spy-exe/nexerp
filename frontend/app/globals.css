@@ -3,16 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --background: 35 58% 97%;
+  --font-sans: var(--font-inter), "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-display: "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-mono-stack: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
+  --background: 210 40% 98%;
   --foreground: 221 39% 11%;
   --panel: 0 0% 100%;
-  --muted: 35 42% 93%;
-  --line: 220 19% 88%;
-  --primary: 182 69% 33%;
+  --muted: 210 40% 96%;
+  --line: 214 32% 91%;
+  --primary: 221 83% 53%;
   --primary-foreground: 0 0% 100%;
-  --accent: 36 83% 63%;
-  --success: 153 49% 37%;
-  --warning: 20 89% 57%;
+  --accent: 221 83% 53%;
+  --success: 152 76% 39%;
+  --warning: 38 92% 50%;
 }
 
 * {
@@ -27,6 +30,21 @@ body {
   margin: 0;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+}
+
+code,
+kbd,
+.font-mono,
+[data-mono] {
+  font-family: var(--font-mono-stack);
 }
 
 a {
@@ -39,4 +57,8 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+select {
+  min-height: 2.25rem;
 }
