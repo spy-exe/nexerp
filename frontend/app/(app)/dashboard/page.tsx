@@ -25,7 +25,7 @@ export default function DashboardPage() {
           const Icon = card.icon
           const value = overview ? currency(overview[card.key]) : currency(0)
           return (
-            <Card key={card.key} className="p-6">
+            <Card key={card.key} className="p-6 transition hover:scale-[1.01]">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-slate-500">{card.label}</p>
                 <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">

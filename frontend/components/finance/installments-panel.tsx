@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import {
   createPayable,
   createReceivable,
@@ -34,6 +35,7 @@ type Mode = "receivables" | "payables"
 
 export function InstallmentsPanel() {
   const qc = useQueryClient()
+  const { toast } = useToast()
   const today = new Date().toISOString().split("T")[0]
   const [mode, setMode] = useState<Mode>("receivables")
   const [showForm, setShowForm] = useState(false)
@@ -56,6 +58,10 @@ export function InstallmentsPanel() {
       qc.invalidateQueries({ queryKey: ["finance-summary"] })
       setShowForm(false)
       setForm({ description: "", total_amount: "", due_date: "" })
+      toast({ title: "Parcela criada", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao criar parcela", description: error instanceof Error ? error.message : undefined, variant: "error" })
     },
   })
 
@@ -67,6 +73,10 @@ export function InstallmentsPanel() {
       qc.invalidateQueries({ queryKey: ["finance-accounts"] })
       qc.invalidateQueries({ queryKey: ["finance-summary"] })
       setPayingId(null)
+      toast({ title: "Pagamento registrado", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao registrar pagamento", description: error instanceof Error ? error.message : undefined, variant: "error" })
     },
   })
 
@@ -75,9 +85,11 @@ export function InstallmentsPanel() {
     onSuccess: (installment) => {
       updateInstallmentCache(installment)
       qc.invalidateQueries({ queryKey: ["finance-summary"] })
+      toast({ title: "Parcela atualizada", variant: "success" })
     },
     onError: (error) => {
       setInlineError(error instanceof Error ? error.message : "Falha ao atualizar parcela.")
+      toast({ title: "Erro ao atualizar parcela", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -149,7 +161,7 @@ export function InstallmentsPanel() {
           </div>
           <div className="sm:col-span-2 flex gap-2 justify-end items-end">
             <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancelar</Button>
-            <Button size="sm" onClick={submitCreate} disabled={!form.description || !form.total_amount || !form.due_date}>
+            <Button size="sm" onClick={submitCreate} disabled={!form.description || !form.total_amount || !form.due_date} isLoading={createMut.isPending}>
               Criar
             </Button>
           </div>
@@ -242,7 +254,7 @@ export function InstallmentsPanel() {
                   </div>
                   <div className="sm:col-span-3 flex gap-2 justify-end">
                     <Button variant="outline" size="sm" onClick={() => setPayingId(null)}>Cancelar</Button>
-                    <Button size="sm" onClick={() => submitPay(inst.id)} disabled={!payForm.account_id || !payForm.amount}>
+                    <Button size="sm" onClick={() => submitPay(inst.id)} disabled={!payForm.account_id || !payForm.amount} isLoading={payMut.isPending}>
                       Confirmar pagamento
                     </Button>
                   </div>

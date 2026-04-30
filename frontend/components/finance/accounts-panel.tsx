@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import {
   createFinancialAccount,
   listFinancialAccounts,
@@ -24,6 +25,7 @@ const ACCOUNT_TYPE_LABEL: Record<string, string> = {
 
 export function AccountsPanel() {
   const qc = useQueryClient()
+  const { toast } = useToast()
   const { data: accounts = [] } = useQuery({
     queryKey: ["finance-accounts"],
     queryFn: listFinancialAccounts,
@@ -39,6 +41,10 @@ export function AccountsPanel() {
       qc.setQueryData<FinancialAccount[]>(["finance-accounts"], (current = []) => [account, ...current])
       setShowForm(false)
       resetForm()
+      toast({ title: "Conta criada", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao salvar conta", description: error instanceof Error ? error.message : undefined, variant: "error" })
     },
   })
   const updateMut = useMutation({
@@ -49,6 +55,10 @@ export function AccountsPanel() {
       )
       setEditing(null)
       resetForm()
+      toast({ title: "Conta atualizada", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao atualizar conta", description: error instanceof Error ? error.message : undefined, variant: "error" })
     },
   })
 
@@ -111,7 +121,7 @@ export function AccountsPanel() {
           </div>
           <div className="sm:col-span-2 flex gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setEditing(null); resetForm() }}>Cancelar</Button>
-            <Button size="sm" onClick={submit} disabled={!form.name}>
+            <Button size="sm" onClick={submit} disabled={!form.name} isLoading={createMut.isPending || updateMut.isPending}>
               {editing ? "Salvar" : "Criar conta"}
             </Button>
           </div>

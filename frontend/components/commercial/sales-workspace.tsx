@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import {
   createSale,
   listCustomers,
@@ -49,6 +50,7 @@ const paymentLabels: Record<DraftPayment["method"], string> = {
 
 export function SalesWorkspace({ channel, title, subtitle, description }: SalesWorkspaceProps) {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const productsQuery = useQuery({ queryKey: ["products"], queryFn: listProducts })
   const customersQuery = useQuery({ queryKey: ["customers"], queryFn: listCustomers })
   const salesQuery = useQuery({ queryKey: ["sales"], queryFn: listSales })
@@ -92,9 +94,11 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
         queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] }),
         queryClient.invalidateQueries({ queryKey: ["balances"] })
       ])
+      toast({ title: "Venda registrada", variant: "success" })
     },
     onError: (error) => {
       setFormError(error instanceof Error ? error.message : "Falha ao registrar venda.")
+      toast({ title: "Erro ao registrar venda", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -202,9 +206,11 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
       queryClient.setQueryData<SaleSummary[]>(["sales"], (current = []) =>
         current.map((item) => (item.id === sale.id ? { ...item, ...updated } : item))
       )
+      toast({ title: "Venda atualizada", variant: "success" })
     } catch (error) {
       queryClient.setQueryData(["sales"], previous)
       setInlineError(error instanceof Error ? error.message : "Falha ao atualizar venda.")
+      toast({ title: "Erro ao atualizar venda", description: error instanceof Error ? error.message : undefined, variant: "error" })
       throw error
     }
   }
@@ -391,7 +397,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
           </div>
 
           {formError && <p className="mt-4 text-sm text-rose-600">{formError}</p>}
-          <Button className="mt-6 w-full gap-2" disabled={createSaleMutation.isPending} type="button" onClick={handleSubmit}>
+          <Button className="mt-6 w-full gap-2" isLoading={createSaleMutation.isPending} type="button" onClick={handleSubmit}>
             <Wallet className="h-4 w-4" />
             {createSaleMutation.isPending ? "Finalizando..." : channel === "pos" ? "Fechar venda no PDV" : "Registrar venda"}
           </Button>

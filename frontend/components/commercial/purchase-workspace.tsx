@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import {
   createPurchase,
   listProducts,
@@ -30,6 +31,7 @@ type DraftPurchaseItem = {
 
 export function PurchaseWorkspace() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const productsQuery = useQuery({ queryKey: ["products"], queryFn: listProducts })
   const suppliersQuery = useQuery({ queryKey: ["suppliers"], queryFn: listSuppliers })
   const purchasesQuery = useQuery({ queryKey: ["purchases"], queryFn: listPurchases })
@@ -60,9 +62,11 @@ export function PurchaseWorkspace() {
         queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] }),
         queryClient.invalidateQueries({ queryKey: ["balances"] })
       ])
+      toast({ title: "Compra registrada", variant: "success" })
     },
     onError: (error) => {
       setFormError(error instanceof Error ? error.message : "Falha ao registrar compra.")
+      toast({ title: "Erro ao registrar compra", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -125,9 +129,11 @@ export function PurchaseWorkspace() {
       queryClient.setQueryData<PurchaseSummary[]>(["purchases"], (current = []) =>
         current.map((item) => (item.id === purchase.id ? { ...item, ...updated } : item))
       )
+      toast({ title: "Compra atualizada", variant: "success" })
     } catch (error) {
       queryClient.setQueryData(["purchases"], previous)
       setInlineError(error instanceof Error ? error.message : "Falha ao atualizar compra.")
+      toast({ title: "Erro ao atualizar compra", description: error instanceof Error ? error.message : undefined, variant: "error" })
       throw error
     }
   }
@@ -238,7 +244,7 @@ export function PurchaseWorkspace() {
           </div>
 
           {formError && <p className="mt-4 text-sm text-rose-600">{formError}</p>}
-          <Button className="mt-6 w-full gap-2" disabled={createPurchaseMutation.isPending} type="button" onClick={handleSubmit}>
+          <Button className="mt-6 w-full gap-2" isLoading={createPurchaseMutation.isPending} type="button" onClick={handleSubmit}>
             <ClipboardPlus className="h-4 w-4" />
             {createPurchaseMutation.isPending ? "Registrando..." : "Registrar compra"}
           </Button>

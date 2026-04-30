@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import { createMovement, listBalances, listProducts, updateProduct, updateWarehouse, type StockBalance } from "@/lib/auth"
 import { movementSchema } from "@/lib/validations"
 
@@ -18,6 +19,7 @@ type MovementValues = z.infer<typeof movementSchema>
 
 export default function StockPage() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [inlineError, setInlineError] = useState<string | null>(null)
   const balancesQuery = useQuery({ queryKey: ["balances"], queryFn: listBalances })
   const productsQuery = useQuery({ queryKey: ["products"], queryFn: listProducts })
@@ -34,9 +36,11 @@ export default function StockPage() {
     onSuccess: async () => {
       reset()
       await queryClient.invalidateQueries({ queryKey: ["balances"] })
+      toast({ title: "Movimentação registrada", variant: "success" })
     },
     onError: (error) => {
       setError("root", { message: error instanceof Error ? error.message : "Falha ao registrar movimentação." })
+      toast({ title: "Erro no estoque", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -61,9 +65,11 @@ export default function StockPage() {
       if ("warehouse_location" in payload) {
         await updateWarehouse(balance.warehouse_id, { location: payload.warehouse_location || null })
       }
+      toast({ title: "Estoque atualizado", variant: "success" })
     } catch (error) {
       queryClient.setQueryData(["balances"], previousBalances)
       setInlineError(error instanceof Error ? error.message : "Falha ao atualizar estoque.")
+      toast({ title: "Erro ao atualizar estoque", description: error instanceof Error ? error.message : undefined, variant: "error" })
       throw error
     }
   }
@@ -105,7 +111,7 @@ export default function StockPage() {
             <Input {...register("notes")} />
           </div>
           {errors.root && <p className="text-sm text-rose-600">{errors.root.message}</p>}
-          <Button className="w-full" disabled={isSubmitting || mutation.isPending} type="submit">
+          <Button className="w-full" disabled={isSubmitting} isLoading={mutation.isPending} type="submit">
             {mutation.isPending ? "Gravando..." : "Registrar movimentação"}
           </Button>
         </form>

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import { createProduct, listCategories, listProducts, updateProduct, type Product } from "@/lib/auth"
 import { currency } from "@/lib/utils"
 import { productSchema } from "@/lib/validations"
@@ -19,6 +20,7 @@ type ProductValues = z.infer<typeof productSchema>
 
 export default function ProductsPage() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [inlineError, setInlineError] = useState<string | null>(null)
   const productsQuery = useQuery({ queryKey: ["products"], queryFn: listProducts })
   const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: listCategories })
@@ -37,9 +39,11 @@ export default function ProductsPage() {
     onSuccess: async () => {
       reset()
       await queryClient.invalidateQueries({ queryKey: ["products"] })
+      toast({ title: "Produto criado", variant: "success" })
     },
     onError: (error) => {
       setError("root", { message: error instanceof Error ? error.message : "Falha ao criar produto." })
+      toast({ title: "Erro ao criar produto", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -61,9 +65,11 @@ export default function ProductsPage() {
       queryClient.setQueryData<Product[]>(["products"], (current = []) =>
         current.map((item) => (item.id === product.id ? updated : item))
       )
+      toast({ title: "Produto atualizado", variant: "success" })
     } catch (error) {
       queryClient.setQueryData(["products"], previous)
       setInlineError(error instanceof Error ? error.message : "Falha ao atualizar produto.")
+      toast({ title: "Erro ao atualizar produto", description: error instanceof Error ? error.message : undefined, variant: "error" })
       throw error
     }
   }
@@ -123,7 +129,7 @@ export default function ProductsPage() {
             </div>
           </div>
           {errors.root && <p className="text-sm text-rose-600">{errors.root.message}</p>}
-          <Button className="w-full" disabled={isSubmitting || mutation.isPending} type="submit">
+          <Button className="w-full" disabled={isSubmitting} isLoading={mutation.isPending} type="submit">
             {mutation.isPending ? "Salvando..." : "Criar produto"}
           </Button>
         </form>

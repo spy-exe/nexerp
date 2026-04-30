@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import {
   createTransaction,
   listFinancialAccounts,
@@ -23,6 +24,7 @@ import { useAuthStore } from "@/stores/auth-store"
 
 export function TransactionsPanel() {
   const qc = useQueryClient()
+  const { toast } = useToast()
   const accessToken = useAuthStore((state) => state.accessToken)
   const today = new Date().toISOString().split("T")[0]
   const [dateFrom, setDateFrom] = useState(() => {
@@ -57,6 +59,10 @@ export function TransactionsPanel() {
       qc.invalidateQueries({ queryKey: ["finance-summary"] })
       setShowForm(false)
       setForm(f => ({ ...f, amount: "", description: "", category_id: "" }))
+      toast({ title: "Transação lançada", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao lançar transação", description: error instanceof Error ? error.message : undefined, variant: "error" })
     },
   })
 
@@ -66,9 +72,11 @@ export function TransactionsPanel() {
       qc.setQueryData<FinancialTransaction[]>(["finance-transactions", dateFrom, dateTo], (current = []) =>
         current.map((item) => (item.id === transaction.id ? transaction : item))
       )
+      toast({ title: "Transação atualizada", variant: "success" })
     },
     onError: (error) => {
       setInlineError(error instanceof Error ? error.message : "Falha ao atualizar transação.")
+      toast({ title: "Erro ao atualizar transação", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -105,6 +113,7 @@ export function TransactionsPanel() {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
     })
     if (!response.ok) {
+      toast({ title: "Erro ao exportar relatório", variant: "error" })
       return
     }
     const blob = await response.blob()
@@ -114,6 +123,7 @@ export function TransactionsPanel() {
     link.download = format === "excel" ? "transacoes.xlsx" : "transacoes.pdf"
     link.click()
     URL.revokeObjectURL(url)
+    toast({ title: "Relatório exportado", variant: "success" })
   }
   const exportExcel = () => {
     void downloadReport("excel")
@@ -201,7 +211,7 @@ export function TransactionsPanel() {
           </div>
           <div className="sm:col-span-2 flex gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancelar</Button>
-            <Button size="sm" onClick={submit} disabled={!form.account_id || !form.amount || !form.description}>
+            <Button size="sm" onClick={submit} disabled={!form.account_id || !form.amount || !form.description} isLoading={createMut.isPending}>
               Lançar
             </Button>
           </div>

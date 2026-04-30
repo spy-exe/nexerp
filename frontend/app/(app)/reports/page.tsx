@@ -73,7 +73,7 @@ export default function ReportsPage() {
 
 function Metric({ icon: Icon, label, value }: { icon: typeof TrendingUp; label: string; value: string }) {
   return (
-    <Card className="p-5">
+    <Card className="p-5 transition hover:scale-[1.01]">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-slate-500">{label}</p>

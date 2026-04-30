@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/toast"
 import type { BusinessParty } from "@/lib/auth"
 import { businessPartySchema } from "@/lib/validations"
 
@@ -93,6 +94,7 @@ export function PartyManager({
   archiveMutation
 }: PartyManagerProps) {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [editingParty, setEditingParty] = useState<BusinessParty | null>(null)
   const [inlineError, setInlineError] = useState<string | null>(null)
   const partiesQuery = useQuery({ queryKey: [queryKey], queryFn: listQuery })
@@ -125,9 +127,11 @@ export function PartyManager({
         }
         return [savedParty, ...current]
       })
+      toast({ title: editingParty ? "Cadastro atualizado" : "Cadastro criado", variant: "success" })
     },
     onError: (error) => {
       setError("root", { message: error instanceof Error ? error.message : "Falha ao salvar cadastro." })
+      toast({ title: "Erro ao salvar cadastro", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -141,6 +145,10 @@ export function PartyManager({
       queryClient.setQueryData<BusinessParty[]>([queryKey], (current = []) =>
         current.map((party) => (party.id === archivedParty.id ? archivedParty : party))
       )
+      toast({ title: "Cadastro arquivado", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao arquivar cadastro", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -169,9 +177,11 @@ export function PartyManager({
       queryClient.setQueryData<BusinessParty[]>([queryKey], (current = []) =>
         current.map((item) => (item.id === party.id ? updated : item))
       )
+      toast({ title: "Cadastro atualizado", variant: "success" })
     } catch (error) {
       queryClient.setQueryData([queryKey], previous)
       setInlineError(error instanceof Error ? error.message : "Falha ao atualizar cadastro.")
+      toast({ title: "Erro ao atualizar cadastro", description: error instanceof Error ? error.message : undefined, variant: "error" })
       throw error
     }
   }
@@ -253,7 +263,7 @@ export function PartyManager({
           </div>
           {errors.root && <p className="text-sm text-rose-600">{errors.root.message}</p>}
           <div className="flex gap-3">
-            <Button className="flex-1" disabled={isSubmitting || saveMutation.isPending} type="submit">
+            <Button className="flex-1" disabled={isSubmitting} isLoading={saveMutation.isPending} type="submit">
               {saveMutation.isPending ? "Salvando..." : editingParty ? "Atualizar cadastro" : "Criar cadastro"}
             </Button>
             {editingParty && (
