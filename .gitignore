@@ -48,6 +48,7 @@ docker-compose.override.yml
 # Logs
 *.log
 logs/
+.qa/
 
 # Certificados e chaves
 *.pem
