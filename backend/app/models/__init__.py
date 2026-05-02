@@ -19,11 +19,14 @@ from app.models.refresh_token import RefreshToken
 from app.models.role import Role, user_roles
 from app.models.sale import Sale, SaleItem, SalePayment
 from app.models.stock import StockBalance, StockMovement, StockMovementType, Warehouse
+from app.models.subscription import BillingHistory, BillingStatus, Plan, Subscription, SubscriptionStatus
 from app.models.user import User
 
 __all__ = [
     "AccountType",
     "AuditLog",
+    "BillingHistory",
+    "BillingStatus",
     "Category",
     "Company",
     "BusinessParty",
@@ -45,6 +48,9 @@ __all__ = [
     "Sale",
     "SaleItem",
     "SalePayment",
+    "Plan",
+    "Subscription",
+    "SubscriptionStatus",
     "StockBalance",
     "StockMovement",
     "StockMovementType",
