@@ -3,7 +3,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -11,6 +11,7 @@ from app.models.category import Category
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductUpdate
 from app.services.audit_service import AuditService
+from app.services.subscription_service import SubscriptionService
 
 
 class ProductService:
@@ -58,6 +59,9 @@ class ProductService:
         return category_uuid
 
     async def create(self, company_id: UUID, user_id: UUID, payload: ProductCreate, ip_address: str | None) -> Product:
+        current_count = await self._count_products(company_id)
+        await SubscriptionService(self.db).check_limit(company_id, "products", current_count)
+
         category_id = await self._validate_category_scope(company_id, payload.category_id)
         product_data = payload.model_dump()
         product_data["category_id"] = category_id
@@ -76,6 +80,15 @@ class ProductService:
         await self.db.commit()
         await self.db.refresh(product)
         return product
+
+    async def _count_products(self, company_id: UUID) -> int:
+        result = await self.db.execute(
+            select(func.count(Product.id)).where(
+                Product.company_id == company_id,
+                Product.deleted_at.is_(None),
+            )
+        )
+        return int(result.scalar_one())
 
     async def update(
         self,

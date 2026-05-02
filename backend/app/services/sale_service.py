@@ -6,7 +6,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -17,6 +17,7 @@ from app.models.stock import Warehouse
 from app.schemas.sale import SaleCreate
 from app.services.audit_service import AuditService
 from app.services.stock_service import StockService
+from app.services.subscription_service import SubscriptionService
 
 
 MONEY_PRECISION = Decimal("0.01")
@@ -55,6 +56,9 @@ class SaleService:
         payload: SaleCreate,
         ip_address: str | None,
     ) -> Sale:
+        current_count = await self._count_sales_this_month(company_id)
+        await SubscriptionService(self.db).check_limit(company_id, "sales_per_month", current_count)
+
         warehouse = await self._resolve_warehouse(company_id, payload.warehouse_id)
         customer = await self._resolve_customer(company_id, payload.customer_id)
         products = await self._load_products(company_id, [UUID(item.product_id) for item in payload.items])
@@ -206,6 +210,23 @@ class SaleService:
         if len(products) != len(set(product_ids)):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Produto inválido na venda.")
         return products
+
+    async def _count_sales_this_month(self, company_id: UUID) -> int:
+        now = datetime.now(tz=UTC)
+        month_start = datetime(now.year, now.month, 1, tzinfo=UTC)
+        if now.month == 12:
+            next_month = datetime(now.year + 1, 1, 1, tzinfo=UTC)
+        else:
+            next_month = datetime(now.year, now.month + 1, 1, tzinfo=UTC)
+
+        result = await self.db.execute(
+            select(func.count(Sale.id)).where(
+                Sale.company_id == company_id,
+                Sale.issued_at >= month_start,
+                Sale.issued_at < next_month,
+            )
+        )
+        return int(result.scalar_one())
 
     @staticmethod
     def _build_number(prefix: str) -> str:
