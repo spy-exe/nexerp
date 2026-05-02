@@ -106,7 +106,7 @@ export default function ProductsPage() {
         <h2 className="text-xl font-semibold text-slate-900">Produtos cadastrados</h2>
         <div className="mt-5 grid gap-3">
           {productsQuery.data?.map((product) => (
-            <div key={product.id} className="rounded-[24px] border border-line bg-white p-5">
+            <div key={product.id} className="rounded-lg border border-line bg-white p-5">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="font-semibold text-slate-900">{product.name}</p>

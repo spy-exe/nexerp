@@ -61,7 +61,7 @@ export default function CategoriesPage() {
         <h2 className="text-xl font-semibold text-slate-900">Categorias cadastradas</h2>
         <div className="mt-5 grid gap-3">
           {categoriesQuery.data?.map((category) => (
-            <div key={category.id} className="rounded-3xl border border-line bg-white px-5 py-4">
+            <div key={category.id} className="rounded-lg border border-line bg-white px-5 py-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="font-semibold text-slate-900">{category.name}</p>

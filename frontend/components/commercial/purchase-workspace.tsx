@@ -192,7 +192,7 @@ export function PurchaseWorkspace() {
 
           <div className="mt-6 space-y-3">
             {items.map((item, index) => (
-              <div key={`${item.product_id}-${index}`} className="rounded-[24px] border border-line bg-white p-4">
+              <div key={`${item.product_id}-${index}`} className="rounded-lg border border-line bg-white p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="font-semibold text-slate-900">{item.product_name}</p>
@@ -209,7 +209,7 @@ export function PurchaseWorkspace() {
             {!items.length && <p className="text-sm text-slate-500">Nenhum item adicionado.</p>}
           </div>
 
-          <div className="mt-6 rounded-[24px] bg-slate-950 p-5 text-white">
+          <div className="mt-6 rounded-lg bg-slate-950 p-5 text-white">
             <div className="flex items-center justify-between text-sm text-slate-300">
               <span>Total previsto</span>
               <span>{currency(total)}</span>
@@ -247,7 +247,7 @@ export function PurchaseWorkspace() {
 
 function PurchaseRow({ purchase }: { purchase: PurchaseSummary }) {
   return (
-    <div className="rounded-[24px] border border-line bg-white p-5">
+    <div className="rounded-lg border border-line bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="font-semibold text-slate-900">{purchase.purchase_number}</p>

@@ -75,7 +75,7 @@ export default function HomePage() {
 
             <Card className="relative overflow-hidden border-0 bg-slate-950 p-4 text-white shadow-2xl">
               <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-teal-400/20 blur-3xl" />
-              <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5">
+              <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-mono text-xs uppercase tracking-[0.3em] text-cyan-200">Painel operacional</p>
@@ -111,7 +111,7 @@ export default function HomePage() {
       <section className="px-6 pb-20 md:px-12">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.8fr_1.2fr]">
           <Card className="bg-white/75 p-8">
-            <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-teal-50 text-teal-700">
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <h2 className="mt-6 text-3xl font-semibold tracking-[-0.03em] text-slate-950">Base segura antes do primeiro cliente.</h2>
@@ -121,7 +121,7 @@ export default function HomePage() {
           </Card>
           <div className="grid gap-4 md:grid-cols-2">
             {guarantees.map((item) => (
-              <div key={item} className="rounded-[28px] border border-white/80 bg-white/70 p-5 shadow-soft">
+              <div key={item} className="rounded-lg border border-white/80 bg-white/70 p-5 shadow-soft">
                 <LockKeyhole className="h-5 w-5 text-teal-700" />
                 <p className="mt-4 font-medium text-slate-900">{item}</p>
               </div>

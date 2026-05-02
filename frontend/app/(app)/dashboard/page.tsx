@@ -43,11 +43,11 @@ export default function DashboardPage() {
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Radar comercial</p>
           <h1 className="mt-3 text-3xl font-semibold text-slate-900">Operação de vendas e compras</h1>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-[24px] bg-slate-950 p-5 text-white">
+            <div className="rounded-lg bg-slate-950 p-5 text-white">
               <p className="text-sm text-slate-300">Vendas hoje</p>
               <p className="mt-3 text-4xl font-semibold">{overview?.sales_count_today ?? 0}</p>
             </div>
-            <div className="rounded-[24px] bg-amber-50 p-5 text-amber-950">
+            <div className="rounded-lg bg-amber-50 p-5 text-amber-950">
               <p className="text-sm text-amber-800">Alertas de estoque</p>
               <p className="mt-3 text-4xl font-semibold">{overview?.open_low_stock_alerts ?? 0}</p>
             </div>
@@ -66,7 +66,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-6 space-y-3">
             {overview?.top_customers.map((customer) => (
-              <div key={customer.id} className="flex items-center justify-between rounded-[24px] border border-line bg-white px-5 py-4">
+              <div key={customer.id} className="flex items-center justify-between rounded-lg border border-line bg-white px-5 py-4">
                 <span className="font-medium text-slate-900">{customer.label}</span>
                 <span className="text-sm font-semibold text-slate-700">{currency(customer.value)}</span>
               </div>
@@ -82,7 +82,7 @@ export default function DashboardPage() {
           <h2 className="mt-3 text-2xl font-semibold text-slate-900">Mais vendidos</h2>
           <div className="mt-6 space-y-3">
             {overview?.top_products.map((product) => (
-              <div key={product.id} className="flex items-center justify-between rounded-[24px] border border-line bg-white px-5 py-4">
+              <div key={product.id} className="flex items-center justify-between rounded-lg border border-line bg-white px-5 py-4">
                 <span className="font-medium text-slate-900">{product.label}</span>
                 <span className="text-sm font-semibold text-slate-700">{quantity(product.value)}</span>
               </div>
@@ -103,7 +103,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-6 space-y-3">
             {overview?.low_stock_alerts.map((alert) => (
-              <div key={alert.product_id} className="rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4">
+              <div key={alert.product_id} className="rounded-lg border border-amber-200 bg-amber-50 px-5 py-4">
                 <p className="font-medium text-amber-950">{alert.product_name}</p>
                 <p className="mt-2 text-sm text-amber-800">
                   Saldo {quantity(alert.quantity)} • mínimo {quantity(alert.min_stock)}

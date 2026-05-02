@@ -197,7 +197,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">{description}</p>
 
           {channel === "pos" && (
-            <form className="mt-8 rounded-[24px] border border-teal-200 bg-teal-50 p-4" onSubmit={handleBarcodeSubmit}>
+            <form className="mt-8 rounded-lg border border-teal-200 bg-teal-50 p-4" onSubmit={handleBarcodeSubmit}>
               <Label className="flex items-center gap-2 text-teal-900">
                 <Barcode className="h-4 w-4" />
                 Leitor USB / código de barras
@@ -320,7 +320,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
 
           <div className="mt-6 space-y-3">
             {items.map((item, index) => (
-              <div key={`${item.product_id}-${index}`} className="rounded-[24px] border border-line bg-white p-4">
+              <div key={`${item.product_id}-${index}`} className="rounded-lg border border-line bg-white p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="font-semibold text-slate-900">{item.product_name}</p>
@@ -337,7 +337,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             {!items.length && <p className="text-sm text-slate-500">Nenhum item adicionado.</p>}
           </div>
 
-          <div className="mt-6 space-y-2 rounded-[24px] bg-slate-950 p-5 text-white">
+          <div className="mt-6 space-y-2 rounded-lg bg-slate-950 p-5 text-white">
             <div className="flex items-center justify-between text-sm text-slate-300">
               <span>Subtotal</span>
               <span>{currency(subtotal)}</span>
@@ -400,7 +400,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
 
 function SaleRow({ sale }: { sale: SaleSummary }) {
   return (
-    <div className="rounded-[24px] border border-line bg-white p-5">
+    <div className="rounded-lg border border-line bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="font-semibold text-slate-900">{sale.sale_number}</p>

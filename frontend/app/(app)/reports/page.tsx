@@ -52,7 +52,7 @@ export default function ReportsPage() {
         <Header icon={Boxes} title="Estoque crítico" />
         <div className="mt-6 grid gap-3">
           {stockQuery.data?.items.map((item) => (
-            <div key={`${item.product_id}-${item.warehouse_id}`} className="rounded-[24px] border border-line bg-white p-4">
+            <div key={`${item.product_id}-${item.warehouse_id}`} className="rounded-lg border border-line bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold text-slate-900">{item.product_name}</p>

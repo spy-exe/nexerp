@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               Cadastro da empresa, autenticação segura, onboarding orientado e catálogo pronto para crescer sem gambiarra.
             </p>
           </div>
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
+          <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
             <p className="font-mono text-xs uppercase tracking-[0.25em] text-cyan-200">Stack</p>
             <p className="mt-3">FastAPI, SQLAlchemy, Next.js, Tailwind, React Query, Zustand e PostgreSQL.</p>
           </div>

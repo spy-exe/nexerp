@@ -81,7 +81,7 @@ export default function FiscalPage() {
           </div>
           <div className="mt-6 space-y-3">
             {fiscalQuery.data?.map((document) => (
-              <div key={document.id} className="rounded-[24px] border border-line bg-white p-4">
+              <div key={document.id} className="rounded-lg border border-line bg-white p-4">
                 <div className="flex flex-wrap justify-between gap-3">
                   <div>
                     <p className="font-semibold text-slate-900">NF-e {document.series}/{document.number}</p>

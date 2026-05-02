@@ -51,7 +51,7 @@ export default function AuditPage() {
       <Card className="p-6">
         <div className="space-y-3">
           {auditQuery.data?.map((log) => (
-            <div key={log.id} className="rounded-[24px] border border-line bg-white p-4">
+            <div key={log.id} className="rounded-lg border border-line bg-white p-4">
               <div className="flex flex-wrap justify-between gap-3">
                 <div>
                   <p className="font-semibold text-slate-900">{log.action}</p>

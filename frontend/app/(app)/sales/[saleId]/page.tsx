@@ -37,7 +37,7 @@ export default function SaleDetailPage() {
         <h2 className="text-2xl font-semibold text-slate-900">Itens</h2>
         <div className="mt-6 grid gap-3">
           {sale.items.map((item) => (
-            <div key={item.id} className="rounded-[24px] border border-line bg-white p-5">
+            <div key={item.id} className="rounded-lg border border-line bg-white p-5">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="font-semibold text-slate-900">{item.product_name}</p>
@@ -56,7 +56,7 @@ export default function SaleDetailPage() {
         <h2 className="text-2xl font-semibold text-slate-900">Pagamentos</h2>
         <div className="mt-6 grid gap-3">
           {sale.payments.map((payment) => (
-            <div key={payment.id} className="flex items-center justify-between rounded-[24px] border border-line bg-white px-5 py-4">
+            <div key={payment.id} className="flex items-center justify-between rounded-lg border border-line bg-white px-5 py-4">
               <span className="font-medium capitalize text-slate-900">{payment.method}</span>
               <span className="text-sm font-semibold text-slate-700">{currency(payment.amount)}</span>
             </div>
@@ -69,7 +69,7 @@ export default function SaleDetailPage() {
 
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] bg-slate-100 p-5">
+    <div className="rounded-lg bg-slate-100 p-5">
       <p className="text-sm text-slate-500">{label}</p>
       <p className="mt-3 text-lg font-semibold text-slate-900">{value}</p>
     </div>

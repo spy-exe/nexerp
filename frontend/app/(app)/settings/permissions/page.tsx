@@ -91,7 +91,7 @@ export default function PermissionsPage() {
               </div>
               <div className="mt-6 grid gap-4 lg:grid-cols-3">
                 {groupedPermissions.map(([module, permissions]) => (
-                  <div key={`${role.id}-${module}`} className="rounded-[24px] border border-line bg-white p-4">
+                  <div key={`${role.id}-${module}`} className="rounded-lg border border-line bg-white p-4">
                     <p className="font-semibold text-slate-900">{module}</p>
                     <div className="mt-3 space-y-2">
                       {permissions?.map((permission) => (

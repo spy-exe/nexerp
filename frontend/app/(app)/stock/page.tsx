@@ -87,7 +87,7 @@ export default function StockPage() {
         <h2 className="text-xl font-semibold text-slate-900">Saldos atuais</h2>
         <div className="mt-5 grid gap-3">
           {balancesQuery.data?.map((balance) => (
-            <div key={`${balance.product_id}:${balance.warehouse_id}`} className="rounded-[24px] border border-line bg-white p-5">
+            <div key={`${balance.product_id}:${balance.warehouse_id}`} className="rounded-lg border border-line bg-white p-5">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="font-semibold text-slate-900">{balance.product_name}</p>

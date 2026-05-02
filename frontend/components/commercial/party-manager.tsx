@@ -242,7 +242,7 @@ export function PartyManager({
           {partiesQuery.data?.map((party) => {
             const Icon = party.person_kind === "company" ? Building2 : UserRound
             return (
-              <div key={party.id} className="rounded-[24px] border border-line bg-white p-5">
+              <div key={party.id} className="rounded-lg border border-line bg-white p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <div className="rounded-2xl bg-slate-100 p-3 text-slate-600">
