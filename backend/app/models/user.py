@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, UniqueConstraint
+from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import Uuid
 
 from app.core.database import Base
 from app.models.base import ActivatableMixin, CompanyBoundMixin, TimestampMixin, UUIDPrimaryKeyMixin
@@ -23,14 +24,13 @@ class User(Base, UUIDPrimaryKeyMixin, TimestampMixin, CompanyBoundMixin, Activat
     __tablename__ = "users"
     __table_args__ = (UniqueConstraint("email", name="uq_users_email"),)
 
+    company_id = mapped_column(Uuid, ForeignKey("companies.id"), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    last_login: Mapped[datetime | None]
-
     last_login: Mapped[datetime | None] = mapped_column()
 
-    company: Mapped["Company"] = relationship(back_populates="users")
+    company: Mapped["Company | None"] = relationship(back_populates="users")
     roles: Mapped[list["Role"]] = relationship(
         secondary=user_roles,
         back_populates="users",

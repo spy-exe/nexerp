@@ -53,9 +53,18 @@ class DatabaseManager:
         if session.bind is None or session.bind.dialect.name != "postgresql":
             return
         await session.execute(
+            text("SELECT set_config('app.current_is_superadmin', 'false', true)")
+        )
+        await session.execute(
             text("SELECT set_config('app.current_company_id', :company_id, true)"),
             {"company_id": str(company_id)},
         )
+
+    async def set_superadmin_context(self, session: AsyncSession) -> None:
+        if session.bind is None or session.bind.dialect.name != "postgresql":
+            return
+        await session.execute(text("SELECT set_config('app.current_is_superadmin', 'true', true)"))
+        await session.execute(text("SELECT set_config('app.current_company_id', '', true)"))
 
     async def dispose(self) -> None:
         await self.engine.dispose()

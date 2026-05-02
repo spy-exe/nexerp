@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from app.models.role import Role
     from app.models.sale import Sale
     from app.models.stock import Warehouse
+    from app.models.subscription import BillingHistory, Subscription
     from app.models.user import User
 
 
@@ -56,3 +57,5 @@ class Company(Base, UUIDPrimaryKeyMixin, TimestampMixin, ActivatableMixin):
     financial_transactions: Mapped[list["FinancialTransaction"]] = relationship(back_populates="company")
     installments: Mapped[list["Installment"]] = relationship(back_populates="company")
     fiscal_documents: Mapped[list["FiscalDocument"]] = relationship(back_populates="company")
+    subscription: Mapped["Subscription | None"] = relationship(back_populates="company")
+    billing_history: Mapped[list["BillingHistory"]] = relationship(back_populates="company")

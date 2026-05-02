@@ -25,7 +25,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 @dataclass(slots=True)
 class RequestUser:
     id: UUID
-    company_id: UUID
+    company_id: UUID | None
     name: str
     email: str
     permissions: set[str]
@@ -101,16 +101,36 @@ async def get_current_user(
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário não encontrado.")
 
-    await get_db_manager(request).set_tenant_context(db, user.company_id)
     permissions = AuthService.collect_permissions(user)
+    role_names = [role.name for role in user.roles]
+    if is_superadmin(user):
+        await get_db_manager(request).set_superadmin_context(db)
+    elif user.company_id is not None:
+        await get_db_manager(request).set_tenant_context(db, user.company_id)
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuário sem empresa vinculada.")
+
     return RequestUser(
         id=user.id,
         company_id=user.company_id,
         name=user.name,
         email=user.email,
         permissions=permissions,
-        role_names=[role.name for role in user.roles],
+        role_names=role_names,
         user=user,
+    )
+
+
+def is_superadmin(user: User) -> bool:
+    return user.company_id is None and any(role.name == "superadmin" for role in user.roles)
+
+
+async def require_superadmin(current_user: RequestUser = Depends(get_current_user)) -> RequestUser:
+    if current_user.company_id is None and "superadmin" in current_user.role_names:
+        return current_user
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Acesso exclusivo para superadmin.",
     )
 
 

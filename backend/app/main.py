@@ -11,6 +11,7 @@ from app.api.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.database import DatabaseManager
 from app.core.rate_limit import build_rate_limiter
+from app.core.subscription_middleware import check_subscription_access
 from app.core.token_store import build_token_store
 
 
@@ -32,6 +33,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         {"name": "reports", "description": "Relatórios avançados de vendas, estoque e financeiro."},
         {"name": "audit", "description": "Trilha de auditoria para ações críticas."},
         {"name": "permissions", "description": "Permissões granulares por módulo e papéis."},
+        {"name": "subscription", "description": "Assinatura, limites de plano e uso atual."},
+        {"name": "admin", "description": "Painel SaaS para superadmin."},
         {"name": "health", "description": "Health checks da aplicação."},
     ]
 
@@ -73,6 +76,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     content={"detail": "Limite global de requisições excedido."},
                     headers={"Retry-After": str(rate_limit.retry_after)},
                 )
+
+            subscription_response = await check_subscription_access(request)
+            if subscription_response is not None:
+                return subscription_response
 
         response = await call_next(request)
         if app_settings.security_headers_enabled:

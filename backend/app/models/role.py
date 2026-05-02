@@ -26,12 +26,13 @@ class Role(Base, UUIDPrimaryKeyMixin, TimestampMixin, CompanyBoundMixin):
     __tablename__ = "roles"
     __table_args__ = (UniqueConstraint("company_id", "name", name="uq_roles_company_name"),)
 
+    company_id = mapped_column(Uuid, ForeignKey("companies.id"), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(80), nullable=False)
     description: Mapped[str | None] = mapped_column(String(255))
     permissions: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    company: Mapped["Company"] = relationship(back_populates="roles")
+    company: Mapped["Company | None"] = relationship(back_populates="roles")
     users: Mapped[list["User"]] = relationship(
         secondary=user_roles,
         back_populates="roles",
