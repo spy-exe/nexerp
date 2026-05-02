@@ -30,8 +30,6 @@ export function ConfirmDialog({
       isConfirming={isConfirming}
       onClose={onClose}
       onConfirm={onConfirm}
-    >
-      <p className="text-sm text-slate-600">Esta ação pode alterar a operação visível para todos os usuários da empresa.</p>
-    </EntityModal>
+    />
   )
 }

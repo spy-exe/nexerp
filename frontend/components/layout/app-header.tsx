@@ -17,17 +17,47 @@ export function AppHeader() {
     router.push("/login")
   }
 
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : "?"
+
   return (
-    <header className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] md:flex-row md:items-center md:justify-between">
-      <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Workspace</p>
-        <h2 className="mt-2 font-display text-2xl font-semibold text-slate-900">{company?.trade_name ?? "NexERP"}</h2>
-        <p className="mt-1 text-sm text-slate-500">{user?.name ? `${user.name} • ${user.email}` : "Sessão local"}</p>
+    <header className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#111111] px-5 py-3">
+      {/* Breadcrumb / workspace */}
+      <div className="flex flex-col">
+        <p className="text-[11px] font-medium uppercase tracking-widest text-[#555555]">
+          Workspace
+        </p>
+        <h2 className="font-display mt-0.5 text-lg font-semibold text-[#f0f0f0]">
+          {company?.trade_name ?? "NexERP"}
+        </h2>
       </div>
-      <Button variant="outline" className="gap-2" onClick={handleLogout}>
-        <LogOut className="h-4 w-4" />
-        Sair
-      </Button>
+
+      {/* Right: badge + avatar + logout */}
+      <div className="flex items-center gap-3">
+        {/* Beta badge */}
+        <span className="hidden rounded-full border border-[#00ff88]/20 bg-[#00ff88]/10 px-2.5 py-1 text-xs font-medium text-[#00ff88] sm:inline-flex">
+          Beta
+        </span>
+
+        {/* User avatar */}
+        <div
+          title={user?.name ?? "Usuário"}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-[#00ff88]/10 text-xs font-semibold text-[#00ff88]"
+        >
+          {initials}
+        </div>
+
+        {/* Logout */}
+        <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair">
+          <LogOut className="h-4 w-4 text-[#888888]" />
+        </Button>
+      </div>
     </header>
   )
 }

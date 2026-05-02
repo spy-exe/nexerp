@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
+from app.models.finance import FinancialAccount, FinancialTransaction, TransactionType
 from app.models.party import BusinessParty, PartyKind
 from app.models.product import Product
 from app.models.purchase import Purchase, PurchaseItem
@@ -114,6 +115,9 @@ class PurchaseService:
                 ip_address=ip_address,
             )
 
+        if payload.create_financial_transaction:
+            await self._create_financial_transaction(company_id, supplier, purchase)
+
         self.audit.log(
             company_id=company_id,
             user_id=user_id,
@@ -132,6 +136,42 @@ class PurchaseService:
         )
         await self.db.commit()
         return await self.get(company_id, purchase.id)
+
+    async def _create_financial_transaction(
+        self,
+        company_id: UUID,
+        supplier: BusinessParty,
+        purchase: Purchase,
+    ) -> None:
+        account_res = await self.db.execute(
+            select(FinancialAccount)
+            .where(
+                FinancialAccount.company_id == company_id,
+                FinancialAccount.is_active.is_(True),
+                FinancialAccount.deleted_at.is_(None),
+            )
+            .order_by(FinancialAccount.created_at.asc())
+            .limit(1)
+        )
+        account = account_res.scalar_one_or_none()
+        if account is None:
+            return
+
+        self.db.add(
+            FinancialTransaction(
+                company_id=company_id,
+                account_id=account.id,
+                person_id=supplier.id,
+                type=TransactionType.expense.value,
+                amount=purchase.total_amount,
+                date=datetime.now(UTC).date(),
+                description=f"Compra {purchase.purchase_number}",
+                reference_id=purchase.id,
+                reference_type="purchase",
+                reconciled=True,
+            )
+        )
+        account.balance = self._money(account.balance - purchase.total_amount)
 
     async def update(
         self,

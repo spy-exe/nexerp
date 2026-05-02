@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
+from app.models.finance import FinancialAccount, FinancialTransaction, TransactionType
 from app.models.party import BusinessParty, PartyKind
 from app.models.product import Product
 from app.models.sale import Sale, SaleItem, SalePayment
@@ -148,6 +149,34 @@ class SaleService:
                 audit_action="stock.sale.outbound",
                 ip_address=ip_address,
             )
+
+        # Auto-create income transaction on the first active financial account
+        account_res = await self.db.execute(
+            select(FinancialAccount)
+            .where(
+                FinancialAccount.company_id == company_id,
+                FinancialAccount.is_active.is_(True),
+                FinancialAccount.deleted_at.is_(None),
+            )
+            .order_by(FinancialAccount.created_at.asc())
+            .limit(1)
+        )
+        fin_account = account_res.scalar_one_or_none()
+        if fin_account is not None:
+            income_txn = FinancialTransaction(
+                company_id=company_id,
+                account_id=fin_account.id,
+                person_id=customer.id if customer else None,
+                type=TransactionType.income.value,
+                amount=total_amount,
+                date=datetime.now(UTC).date(),
+                description=f"Venda {sale.sale_number}",
+                reference_id=sale.id,
+                reference_type="sale",
+                reconciled=True,
+            )
+            self.db.add(income_txn)
+            fin_account.balance = self._money(fin_account.balance + total_amount)
 
         self.audit.log(
             company_id=company_id,

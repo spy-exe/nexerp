@@ -35,17 +35,17 @@ export function DataTable<T>({ rows, columns, getRowKey, emptyState, pageSize = 
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#111111]">
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <thead className="bg-white/[0.03] text-xs font-semibold uppercase tracking-wide text-[#888888]">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
                   className={cn(
                     "h-10 whitespace-nowrap px-4 text-left",
-                    column.key === "actions" && "sticky right-0 bg-slate-50 text-right",
+                    column.key === "actions" && "sticky right-0 bg-[#111111] text-right",
                     column.className
                   )}
                 >
@@ -56,17 +56,22 @@ export function DataTable<T>({ rows, columns, getRowKey, emptyState, pageSize = 
           </thead>
           <tbody>
             {pageRows.map((row) => (
-              <tr key={getRowKey(row)} className="h-12 border-b border-slate-100 transition hover:bg-slate-50">
+              <tr
+                key={getRowKey(row)}
+                className="h-12 border-b border-white/[0.04] transition-colors hover:bg-white/[0.03]"
+              >
                 {columns.map((column) => (
                   <td
                     key={column.key}
                     className={cn(
-                      "whitespace-nowrap px-4 py-3 align-middle",
-                      column.key === "actions" && "sticky right-0 bg-white text-right",
+                      "whitespace-nowrap px-4 py-3 align-middle text-[#d0d0d0]",
+                      column.key === "actions" && "sticky right-0 bg-[#111111] text-right",
                       column.className
                     )}
                   >
-                    {column.render ? column.render(row) : String((row as Record<string, unknown>)[column.key] ?? "")}
+                    {column.render
+                      ? column.render(row)
+                      : String((row as Record<string, unknown>)[column.key] ?? "")}
                   </td>
                 ))}
               </tr>
@@ -74,16 +79,26 @@ export function DataTable<T>({ rows, columns, getRowKey, emptyState, pageSize = 
           </tbody>
         </table>
       </div>
-      <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-white/[0.04] px-4 py-3 text-sm text-[#888888] sm:flex-row sm:items-center sm:justify-between">
         <span>
-          Exibindo {from}-{to} de {rows.length} resultados
+          Exibindo {from}–{to} de {rows.length} resultados
         </span>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage((current) => Math.max(current - 1, 0))}>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={page === 0}
+            onClick={() => setPage((c) => Math.max(c - 1, 0))}
+          >
             <ChevronLeft className="mr-1 h-4 w-4" />
-            Ant
+            Anterior
           </Button>
-          <Button size="sm" variant="outline" disabled={page + 1 >= totalPages} onClick={() => setPage((current) => Math.min(current + 1, totalPages - 1))}>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={page + 1 >= totalPages}
+            onClick={() => setPage((c) => Math.min(c + 1, totalPages - 1))}
+          >
             Próx
             <ChevronRight className="ml-1 h-4 w-4" />
           </Button>

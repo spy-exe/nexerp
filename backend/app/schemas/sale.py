@@ -31,7 +31,7 @@ class SaleCreate(BaseModel):
 
 
 class SaleUpdate(BaseModel):
-    status: str | None = Field(default=None, pattern="^(draft|confirmed|cancelled)$")
+    status: str | None = Field(default=None, pattern="^(draft|confirmed|completed|cancelled)$")
     notes: str | None = Field(default=None, max_length=500)
 
 

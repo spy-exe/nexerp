@@ -36,6 +36,10 @@ dist/
 
 # Docker
 docker-compose.override.yml
+backend/*.db
+backend/run_seed.py
+backend/seed.py
+frontend/frontend/
 
 # IDEs
 .vscode/
@@ -48,6 +52,7 @@ docker-compose.override.yml
 # Logs
 *.log
 logs/
+.qa/
 
 # Certificados e chaves
 *.pem

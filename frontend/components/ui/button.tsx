@@ -15,16 +15,22 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center rounded-lg text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60",
-          size === "md" && "h-9 px-4",
-          size === "sm" && "h-8 px-3 text-xs",
+          "inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-50",
+          size === "md"   && "h-9 px-4",
+          size === "sm"   && "h-8 px-3 text-xs",
           size === "icon" && "h-9 w-9 p-0",
-          variant === "primary" && "bg-blue-600 text-white hover:bg-blue-700",
-          variant === "ghost" && "text-slate-700 hover:bg-slate-50",
-          variant === "outline" && "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-          variant === "danger" && "bg-red-600 text-white hover:bg-red-700",
-          variant === "success" && "bg-emerald-600 text-white hover:bg-emerald-700",
-          variant === "warning" && "bg-amber-500 text-slate-950 hover:bg-amber-600",
+          variant === "primary" &&
+            "bg-[#00ff88] text-[#0a0a0a] hover:bg-[#00e87a] focus-visible:ring-[#00ff88] shadow-[0_0_20px_rgba(0,255,136,0.2)] hover:shadow-[0_0_32px_rgba(0,255,136,0.38)]",
+          variant === "ghost" &&
+            "text-[#f0f0f0] hover:bg-white/5",
+          variant === "outline" &&
+            "border border-white/10 bg-transparent text-[#f0f0f0] hover:bg-white/5 hover:border-white/20",
+          variant === "danger" &&
+            "bg-[#ff4444] text-white hover:bg-[#e63939] focus-visible:ring-[#ff4444]",
+          variant === "success" &&
+            "bg-[#00ff88] text-[#0a0a0a] hover:bg-[#00e87a] focus-visible:ring-[#00ff88]",
+          variant === "warning" &&
+            "bg-[#ffd700] text-[#0a0a0a] hover:bg-[#e6c200] focus-visible:ring-[#ffd700]",
           className
         )}
         disabled={disabled || isLoading}

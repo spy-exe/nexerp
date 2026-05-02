@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useMemo, useState } from "react"
+import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import { CheckCircle2, Info, XCircle } from "lucide-react"
 
@@ -32,12 +32,17 @@ const variants: Record<ToastVariant, { icon: typeof CheckCircle2; className: str
 }
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false)
   const [items, setItems] = useState<ToastItem[]>([])
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const value = useMemo<ToastContextValue>(
     () => ({
       toast: (input) => {
-        const id = crypto.randomUUID()
+        const id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
         const item = { ...input, id, variant: input.variant ?? "info" }
         setItems((current) => [...current, item])
         window.setTimeout(() => {
@@ -51,7 +56,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {typeof document !== "undefined" &&
+      {mounted &&
         createPortal(
           <div className="fixed bottom-5 right-5 z-50 flex w-[min(360px,calc(100vw-2rem))] flex-col gap-3">
             {items.map((item) => {
