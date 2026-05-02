@@ -119,7 +119,7 @@ export function AccountsPanel() {
               <p className={`text-lg font-semibold ${Number(acc.balance) >= 0 ? "text-emerald-700" : "text-red-700"}`}>
                 {currency(acc.balance)}
               </p>
-              <Button variant="ghost" size="icon" onClick={() => startEdit(acc)}>
+              <Button variant="ghost" size="icon" aria-label={`Editar conta ${acc.name}`} onClick={() => startEdit(acc)}>
                 <Pencil className="h-4 w-4" />
               </Button>
             </div>

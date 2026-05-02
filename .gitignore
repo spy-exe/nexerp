@@ -44,6 +44,8 @@ docker-compose.override.yml
 # Logs
 *.log
 logs/
+docs/reports/
+backend/.tmp/
 
 # Certificados e chaves
 *.pem
