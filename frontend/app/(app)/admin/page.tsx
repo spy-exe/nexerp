@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Building2, CheckCircle2, CreditCard, PauseCircle, RefreshCw, Users } from "lucide-react"
+import { AlertTriangle, Building2, CheckCircle2, CreditCard, PauseCircle, RefreshCw, SearchX, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -96,12 +96,14 @@ export default function AdminCompaniesPage() {
   const stats = statsQuery.data
   const selectedCompany = detailQuery.data
 
+  const isLoadingCompanies = companiesQuery.isLoading || statsQuery.isLoading
+
   return (
     <div className="space-y-6">
       <section className="grid gap-4 xl:grid-cols-3">
-        <StatCard icon={Building2} label="Empresas" value={stats?.total_companies ?? 0} />
-        <StatCard icon={CheckCircle2} label="Ativas hoje" value={stats?.active_today ?? 0} />
-        <StatCard icon={CreditCard} label="Em trial" value={stats?.trialing ?? 0} />
+        <StatCard icon={Building2} label="Empresas" value={stats?.total_companies ?? 0} loading={statsQuery.isLoading} />
+        <StatCard icon={CheckCircle2} label="Ativas hoje" value={stats?.active_today ?? 0} loading={statsQuery.isLoading} />
+        <StatCard icon={CreditCard} label="Em trial" value={stats?.trialing ?? 0} loading={statsQuery.isLoading} />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
@@ -115,7 +117,12 @@ export default function AdminCompaniesPage() {
               <RefreshCw className="h-4 w-4" />
             </Button>
           </div>
-          <div className="mt-6 space-y-3">
+          {companiesQuery.error && (
+            <InlineNotice tone="danger" text={companiesQuery.error instanceof Error ? companiesQuery.error.message : "Falha ao carregar empresas."} />
+          )}
+          <div className="mt-6 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white">
+            {isLoadingCompanies &&
+              Array.from({ length: 4 }).map((_, index) => <SkeletonRow key={index} />)}
             {companiesQuery.data?.map((company) => (
               <CompanyRow
                 key={company.company.id}
@@ -124,25 +131,40 @@ export default function AdminCompaniesPage() {
                 onSelect={() => setSelectedCompanyId(company.company.id)}
               />
             ))}
-            {!companiesQuery.data?.length && <p className="text-sm text-slate-500">Nenhuma empresa encontrada.</p>}
+            {!isLoadingCompanies && !companiesQuery.data?.length && (
+              <EmptyState icon={SearchX} title="Nenhuma empresa cadastrada" text="Assim que uma empresa entrar no SaaS, ela aparece aqui para suporte e cobrança." />
+            )}
           </div>
         </Card>
 
         <Card className="p-6">
-          {selectedCompany ? (
+          {detailQuery.isLoading ? (
+            <div className="space-y-5">
+              <div className="h-5 w-28 rounded bg-slate-100" />
+              <div className="h-8 w-2/3 rounded bg-slate-100" />
+              <div className="grid gap-4 md:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div key={index} className="h-28 rounded-2xl bg-slate-100" />
+                ))}
+              </div>
+            </div>
+          ) : selectedCompany ? (
             <div className="space-y-6">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Detalhes</p>
                   <h2 className="mt-3 text-2xl font-semibold text-slate-900">{selectedCompany.company.trade_name}</h2>
-                  <p className="mt-2 text-sm text-slate-500">
-                    {selectedCompany.company.email} • {selectedCompany.company.cnpj}
+                  <p className="mt-2 break-words text-sm text-slate-500">
+                    {selectedCompany.company.email} · {selectedCompany.company.cnpj}
                   </p>
                 </div>
                 <StatusBadge status={selectedCompany.subscription?.status ?? "sem assinatura"} />
               </div>
 
-              {message && <p className="rounded-2xl bg-teal-50 px-4 py-3 text-sm font-medium text-teal-800">{message}</p>}
+              {message && <InlineNotice tone="success" text={message} />}
+              {detailQuery.error && (
+                <InlineNotice tone="danger" text={detailQuery.error instanceof Error ? detailQuery.error.message : "Falha ao carregar detalhes."} />
+              )}
 
               {selectedCompany.subscription && (
                 <div className="grid gap-4 md:grid-cols-3">
@@ -156,7 +178,7 @@ export default function AdminCompaniesPage() {
                 <div>
                   <Label>Plano</Label>
                   <select
-                    className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm"
+                    className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
                     value={selectedPlanId}
                     onChange={(event) => setSelectedPlanId(event.target.value)}
                   >
@@ -200,10 +222,10 @@ export default function AdminCompaniesPage() {
 
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">Cobranças</h3>
-                <div className="mt-3 space-y-3">
+                <div className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white">
                   {selectedCompany.billing_history.map((item) => (
-                    <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3">
-                      <div>
+                    <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                      <div className="min-w-0">
                         <p className="font-medium text-slate-900">{item.description ?? "Cobrança"}</p>
                         <p className="mt-1 text-xs text-slate-500">{formatDateTime(item.created_at)}</p>
                       </div>
@@ -213,12 +235,14 @@ export default function AdminCompaniesPage() {
                       </div>
                     </div>
                   ))}
-                  {!selectedCompany.billing_history.length && <p className="text-sm text-slate-500">Sem cobranças registradas.</p>}
+                  {!selectedCompany.billing_history.length && (
+                    <EmptyState icon={CreditCard} title="Sem cobranças registradas" text="O histórico financeiro desta empresa ainda não recebeu lançamentos." />
+                  )}
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-500">Selecione uma empresa.</p>
+            <EmptyState icon={Building2} title="Selecione uma empresa" text="Escolha uma empresa na lista para revisar plano, uso e cobranças." />
           )}
         </Card>
       </section>
@@ -226,13 +250,13 @@ export default function AdminCompaniesPage() {
   )
 }
 
-function StatCard({ icon: Icon, label, value }: { icon: typeof Building2; label: string; value: number }) {
+function StatCard({ icon: Icon, label, value, loading }: { icon: typeof Building2; label: string; value: number; loading?: boolean }) {
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm text-slate-500">{label}</p>
-          <p className="mt-3 text-3xl font-semibold text-slate-900">{value}</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-900">{loading ? "..." : value}</p>
         </div>
         <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
           <Icon className="h-5 w-5" />
@@ -246,20 +270,20 @@ function CompanyRow({ company, active, onSelect }: { company: AdminCompanyListIt
   return (
     <button
       type="button"
-      className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
-        active ? "border-teal-300 bg-teal-50" : "border-line bg-white hover:border-teal-200"
+      className={`w-full px-4 py-3 text-left transition ${
+        active ? "bg-teal-50" : "bg-white hover:bg-slate-50"
       }`}
       onClick={onSelect}
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-semibold text-slate-900">{company.company.trade_name}</p>
-          <p className="mt-1 text-sm text-slate-500">{company.company.email}</p>
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-slate-900">{company.company.trade_name}</p>
+          <p className="mt-1 break-words text-sm text-slate-500">{company.company.email}</p>
         </div>
         <StatusBadge status={company.subscription?.status ?? "sem assinatura"} />
       </div>
       <p className="mt-3 text-xs text-slate-500">
-        {company.subscription?.plan.name ?? "Sem plano"} • criada em {new Intl.DateTimeFormat("pt-BR").format(new Date(company.created_at))}
+        {company.subscription?.plan.name ?? "Sem plano"} · criada em {new Intl.DateTimeFormat("pt-BR").format(new Date(company.created_at))}
       </p>
     </button>
   )
@@ -287,6 +311,35 @@ function UsageTile({ label, metric }: { label: string; metric?: UsageMetric }) {
       <div className="mt-3 h-2 rounded-full bg-slate-100">
         <div className="h-2 rounded-full bg-teal-600" style={{ width: `${Math.min(value.percentage, 100)}%` }} />
       </div>
+    </div>
+  )
+}
+
+function InlineNotice({ text, tone }: { text: string; tone: "success" | "danger" }) {
+  const classes = tone === "danger" ? "border-rose-100 bg-rose-50 text-rose-700" : "border-teal-100 bg-teal-50 text-teal-800"
+  return (
+    <div className={`mt-4 flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium ${classes}`}>
+      {tone === "danger" && <AlertTriangle className="h-4 w-4 shrink-0" />}
+      <span className="min-w-0 break-words">{text}</span>
+    </div>
+  )
+}
+
+function EmptyState({ icon: Icon, title, text }: { icon: typeof Building2; title: string; text: string }) {
+  return (
+    <div className="px-4 py-8 text-center">
+      <Icon className="mx-auto h-5 w-5 text-slate-400" />
+      <p className="mt-3 font-medium text-slate-800">{title}</p>
+      <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-500">{text}</p>
+    </div>
+  )
+}
+
+function SkeletonRow() {
+  return (
+    <div className="px-4 py-3">
+      <div className="h-4 w-2/3 rounded bg-slate-100" />
+      <div className="mt-3 h-3 w-1/2 rounded bg-slate-100" />
     </div>
   )
 }

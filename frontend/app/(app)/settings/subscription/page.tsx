@@ -32,7 +32,8 @@ export default function SubscriptionPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Assinatura</p>
-            <h1 className="mt-3 text-3xl font-semibold text-slate-900">{usage?.plan.name ?? "Plano"}</h1>
+            <h1 className="mt-3 text-3xl font-semibold text-slate-900">{usageQuery.isLoading ? "Carregando plano" : usage?.plan.name ?? "Plano indisponível"}</h1>
+            <p className="mt-2 text-sm text-slate-500">Acompanhe limites contratados antes de bloquear cadastros ou vendas.</p>
             <div className="mt-4 flex flex-wrap gap-2 text-sm">
               <span className="rounded-full bg-teal-50 px-3 py-1 font-medium text-teal-800">
                 {STATUS_LABEL[usage?.status ?? ""] ?? usage?.status ?? "Carregando"}
@@ -46,13 +47,13 @@ export default function SubscriptionPage() {
           </div>
           <div className="flex items-center gap-3">
             {usage && (
-              <div className="rounded-2xl border border-line bg-white px-4 py-3 text-right">
+              <div className="rounded-2xl border border-line bg-white px-4 py-3 text-left sm:text-right">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Mensalidade</p>
                 <p className="mt-1 text-xl font-semibold text-slate-900">{currency(usage.plan.price_monthly)}</p>
               </div>
             )}
             <Button variant="outline" size="icon" onClick={() => usageQuery.refetch()} aria-label="Atualizar uso">
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className={`h-4 w-4 ${usageQuery.isFetching ? "animate-spin" : ""}`} />
             </Button>
           </div>
         </div>
@@ -68,31 +69,36 @@ export default function SubscriptionPage() {
         {METRICS.map((metric) => {
           const Icon = metric.icon
           const value = usage?.usage[metric.key] ?? { current: 0, limit: 0, percentage: 0 }
-          return <UsageCard key={metric.key} label={metric.label} icon={Icon} metric={value} />
+          return <UsageCard key={metric.key} label={metric.label} icon={Icon} metric={value} loading={usageQuery.isLoading} />
         })}
       </section>
 
-      {usage && (
-        <Card className="p-6">
-          <div className="flex items-center gap-3">
+      <Card className="p-6">
+        {usage ? (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
               <CreditCard className="h-5 w-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-xl font-semibold text-slate-900">{usage.plan.slug}</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Usuários {usage.plan.limits.max_users} • produtos {usage.plan.limits.max_products} • vendas mensais{" "}
+              <p className="mt-1 break-words text-sm text-slate-500">
+                Usuários {usage.plan.limits.max_users} · produtos {usage.plan.limits.max_products} · vendas mensais{" "}
                 {usage.plan.limits.max_sales_per_month}
               </p>
             </div>
           </div>
-        </Card>
-      )}
+        ) : (
+          <div className="flex items-center gap-3 text-sm text-slate-500">
+            <CreditCard className="h-5 w-5 text-slate-400" />
+            {usageQuery.isLoading ? "Carregando detalhes do plano..." : "Não foi possível exibir os detalhes do plano."}
+          </div>
+        )}
+      </Card>
     </div>
   )
 }
 
-function UsageCard({ label, icon: Icon, metric }: { label: string; icon: typeof Users; metric: UsageMetric }) {
+function UsageCard({ label, icon: Icon, metric, loading }: { label: string; icon: typeof Users; metric: UsageMetric; loading?: boolean }) {
   const width = `${Math.min(metric.percentage, 100)}%`
   const isNearLimit = metric.percentage >= 80
 
@@ -102,7 +108,7 @@ function UsageCard({ label, icon: Icon, metric }: { label: string; icon: typeof 
         <div>
           <p className="text-sm text-slate-500">{label}</p>
           <p className="mt-3 text-3xl font-semibold text-slate-900">
-            {metric.current}
+            {loading ? "..." : metric.current}
             <span className="ml-2 text-base font-medium text-slate-400">/ {metric.limit}</span>
           </p>
         </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Archive, Check, Pencil, Plus, X } from "lucide-react"
+import { AlertTriangle, Archive, Check, CreditCard, Pencil, Plus, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -131,7 +131,7 @@ export default function AdminPlansPage() {
       <Card className="p-6">
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Planos</p>
         <h1 className="mt-3 text-2xl font-semibold text-slate-900">{editingPlan ? "Editar plano" : "Novo plano"}</h1>
-        {message && <p className="mt-4 rounded-2xl bg-teal-50 px-4 py-3 text-sm font-medium text-teal-800">{message}</p>}
+        {message && <InlineNotice tone={message.includes("Falha") || message.includes("JSON") ? "danger" : "success"} text={message} />}
 
         <div className="mt-6 grid gap-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -178,8 +178,9 @@ export default function AdminPlansPage() {
                 onChange={(event) => setForm((current) => ({ ...current, price_monthly: event.target.value }))}
               />
             </div>
-            <label className="flex items-end gap-2 pb-3 text-sm font-medium text-slate-600">
+            <label className="flex h-11 items-center gap-2 self-end rounded-2xl border border-line bg-white px-4 text-sm font-medium text-slate-600">
               <input
+                className="h-4 w-4 accent-teal-600"
                 type="checkbox"
                 checked={form.is_active}
                 onChange={(event) => setForm((current) => ({ ...current, is_active: event.target.checked }))}
@@ -207,12 +208,28 @@ export default function AdminPlansPage() {
       </Card>
 
       <Card className="p-6">
-        <h2 className="text-xl font-semibold text-slate-900">Planos cadastrados</h2>
-        <div className="mt-5 grid gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Catálogo</p>
+            <h2 className="mt-3 text-xl font-semibold text-slate-900">Planos cadastrados</h2>
+          </div>
+          {plansQuery.data && <p className="text-sm text-slate-500">{plansQuery.data.length} registros</p>}
+        </div>
+        {plansQuery.error && (
+          <InlineNotice tone="danger" text={plansQuery.error instanceof Error ? plansQuery.error.message : "Falha ao carregar planos."} />
+        )}
+        <div className="mt-5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white">
+          {plansQuery.isLoading &&
+            Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="p-5">
+                <div className="h-5 w-1/3 rounded bg-slate-100" />
+                <div className="mt-3 h-4 w-2/3 rounded bg-slate-100" />
+              </div>
+            ))}
           {plansQuery.data?.map((plan) => (
-            <div key={plan.id} className="rounded-2xl border border-line bg-white p-5">
+            <div key={plan.id} className="p-5">
               <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold text-slate-900">{plan.name}</p>
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{plan.slug}</span>
@@ -220,7 +237,7 @@ export default function AdminPlansPage() {
                       {plan.is_active ? "Ativo" : "Inativo"}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm text-slate-500">{plan.description ?? "Sem descrição"}</p>
+                  <p className="mt-2 break-words text-sm text-slate-500">{plan.description ?? "Sem descrição operacional"}</p>
                 </div>
                 <p className="text-xl font-semibold text-slate-900">{currency(plan.price_monthly)}</p>
               </div>
@@ -241,9 +258,25 @@ export default function AdminPlansPage() {
               </div>
             </div>
           ))}
-          {!plansQuery.data?.length && <p className="text-sm text-slate-500">Nenhum plano cadastrado.</p>}
+          {!plansQuery.isLoading && !plansQuery.data?.length && (
+            <div className="px-4 py-8 text-center">
+              <CreditCard className="mx-auto h-5 w-5 text-slate-400" />
+              <p className="mt-3 font-medium text-slate-800">Nenhum plano cadastrado</p>
+              <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-500">Crie o primeiro plano para liberar cobrança e limites de uso na base SaaS.</p>
+            </div>
+          )}
         </div>
       </Card>
+    </div>
+  )
+}
+
+function InlineNotice({ text, tone }: { text: string; tone: "success" | "danger" }) {
+  const classes = tone === "danger" ? "border-rose-100 bg-rose-50 text-rose-700" : "border-teal-100 bg-teal-50 text-teal-800"
+  return (
+    <div className={`mt-4 flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium ${classes}`}>
+      {tone === "danger" && <AlertTriangle className="h-4 w-4 shrink-0" />}
+      <span className="min-w-0 break-words">{text}</span>
     </div>
   )
 }
