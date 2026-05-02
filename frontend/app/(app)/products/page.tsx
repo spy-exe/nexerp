@@ -6,7 +6,6 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { InlineEdit } from "@/components/shared/InlineEdit"
 import { PageHeader } from "@/components/shared/PageHeader"
@@ -83,100 +82,6 @@ export default function ProductsPage() {
     ...(categoriesQuery.data?.map((category) => ({ value: category.id, label: category.name })) ?? [])
   ]
 
-  const columns: Array<DataTableColumn<Product>> = [
-    {
-      key: "name",
-      label: "Produto",
-      render: (product) => (
-        <div>
-          <InlineEdit value={product.name} onSave={(value) => saveProductField(product, { name: value })} />
-          <p className="mt-1 text-xs text-slate-500">SKU {product.sku} • {product.unit}</p>
-        </div>
-      )
-    },
-    {
-      key: "barcode",
-      label: "Código",
-      render: (product) => (
-        <InlineEdit
-          value={product.barcode ?? ""}
-          displayValue={product.barcode || "sem código"}
-          onSave={(value) => saveProductField(product, { barcode: value || null })}
-        />
-      )
-    },
-    {
-      key: "category_id",
-      label: "Categoria",
-      render: (product) => (
-        <InlineEdit
-          type="select"
-          value={product.category_id ?? ""}
-          displayValue={categoryOptions.find((option) => option.value === product.category_id)?.label ?? "Sem categoria"}
-          options={categoryOptions}
-          onSave={(value) => saveProductField(product, { category_id: value || null })}
-        />
-      )
-    },
-    {
-      key: "cost_price",
-      label: "Custo",
-      render: (product) => (
-        <InlineEdit
-          type="number"
-          min="0"
-          step="0.01"
-          value={product.cost_price}
-          displayValue={currency(product.cost_price)}
-          onSave={(value) => saveProductField(product, { cost_price: value })}
-        />
-      )
-    },
-    {
-      key: "sale_price",
-      label: "Venda",
-      render: (product) => (
-        <InlineEdit
-          type="number"
-          min="0"
-          step="0.01"
-          value={product.sale_price}
-          displayValue={currency(product.sale_price)}
-          onSave={(value) => saveProductField(product, { sale_price: value })}
-        />
-      )
-    },
-    {
-      key: "min_stock",
-      label: "Mínimo",
-      render: (product) => (
-        <InlineEdit
-          type="number"
-          min="0"
-          step="0.001"
-          value={product.min_stock}
-          onSave={(value) => saveProductField(product, { min_stock: value })}
-        />
-      )
-    },
-    {
-      key: "actions",
-      label: "Status",
-      render: (product) => (
-        <InlineEdit
-          type="select"
-          value={product.is_active ? "active" : "archived"}
-          displayValue={<StatusBadge status={product.is_active ? "active" : "archived"} />}
-          options={[
-            { value: "active", label: "Ativo" },
-            { value: "archived", label: "Arquivado" }
-          ]}
-          onSave={(value) => saveProductField(product, { is_active: value === "active" })}
-        />
-      )
-    }
-  ]
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -186,8 +91,8 @@ export default function ProductsPage() {
       />
       <div className="grid gap-6 xl:grid-cols-[430px_1fr]">
       <Card className="p-6">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Catálogo</p>
-        <h1 className="mt-3 text-2xl font-semibold">Novo produto</h1>
+        <p className="text-xs font-medium uppercase tracking-widest text-[#00ff88]">Catálogo</p>
+        <h1 className="mt-3 text-xl font-bold text-[var(--fg)]">Novo produto</h1>
         <form className="mt-6 grid gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -209,7 +114,7 @@ export default function ProductsPage() {
           </div>
           <div>
             <Label>Categoria</Label>
-            <select className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" {...register("category_id")}>
+            <select className="h-9 w-full rounded-lg border border-[color:var(--border)] bg-[var(--bg-card)] px-3 text-sm text-[var(--fg)] outline-none transition focus:ring-2 focus:ring-[#00ff88]/30" {...register("category_id")}>
               <option value="">Sem categoria</option>
               {categoriesQuery.data?.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -232,22 +137,92 @@ export default function ProductsPage() {
               <Input type="number" step="0.001" {...register("min_stock")} />
             </div>
           </div>
-          {errors.root && <p className="text-sm text-rose-600">{errors.root.message}</p>}
+          {errors.root && <p className="text-sm text-[#ff4444]">{errors.root.message}</p>}
           <Button className="w-full" disabled={isSubmitting} isLoading={mutation.isPending} type="submit">
             {mutation.isPending ? "Salvando..." : "Criar produto"}
           </Button>
         </form>
       </Card>
       <Card className="p-6">
-        <h2 className="text-xl font-semibold text-slate-900">Produtos cadastrados</h2>
-        {inlineError && <p className="mt-3 text-sm text-rose-600">{inlineError}</p>}
-        <div className="mt-5">
-          <DataTable
-            columns={columns}
-            rows={productsQuery.data ?? []}
-            getRowKey={(product) => product.id}
-            emptyState={<EmptyState title="Nenhum produto cadastrado" description="Crie o primeiro produto para começar a controlar preço e estoque." />}
-          />
+        <h2 className="text-xl font-bold text-[var(--fg)]">Produtos cadastrados</h2>
+        {inlineError && <p className="mt-3 text-sm text-[#ff4444]">{inlineError}</p>}
+        <div className="mt-5 space-y-3">
+          {!productsQuery.data?.length && (
+            <EmptyState title="Nenhum produto cadastrado" description="Crie o primeiro produto para começar a controlar preço e estoque." />
+          )}
+          {productsQuery.data?.map((product) => (
+            <div key={product.id} className="rounded-xl border border-[color:var(--border)] bg-[var(--bg-muted)] p-4 transition hover:border-[color:var(--border-hover)]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <InlineEdit value={product.name} onSave={(value) => saveProductField(product, { name: value })} />
+                  <p className="mt-0.5 text-xs text-[var(--fg-muted)]">
+                    SKU {product.sku} • {product.unit} •{" "}
+                    <InlineEdit
+                      value={product.barcode ?? ""}
+                      displayValue={product.barcode ? `cód. ${product.barcode}` : "sem código de barras"}
+                      onSave={(value) => saveProductField(product, { barcode: value || null })}
+                    />
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--fg-muted)]">
+                    <span>
+                      Cat:{" "}
+                      <InlineEdit
+                        type="select"
+                        value={product.category_id ?? ""}
+                        displayValue={categoryOptions.find((o) => o.value === product.category_id)?.label ?? "sem categoria"}
+                        options={categoryOptions}
+                        onSave={(value) => saveProductField(product, { category_id: value || null })}
+                      />
+                    </span>
+                    <span>
+                      Custo:{" "}
+                      <InlineEdit
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={product.cost_price}
+                        displayValue={currency(product.cost_price)}
+                        onSave={(value) => saveProductField(product, { cost_price: value })}
+                      />
+                    </span>
+                    <span>
+                      Venda:{" "}
+                      <InlineEdit
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={product.sale_price}
+                        displayValue={currency(product.sale_price)}
+                        onSave={(value) => saveProductField(product, { sale_price: value })}
+                      />
+                    </span>
+                    <span>
+                      Mín:{" "}
+                      <InlineEdit
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        value={product.min_stock}
+                        onSave={(value) => saveProductField(product, { min_stock: value })}
+                      />
+                    </span>
+                  </div>
+                </div>
+                <div className="shrink-0">
+                  <InlineEdit
+                    type="select"
+                    value={product.is_active ? "active" : "archived"}
+                    displayValue={<StatusBadge status={product.is_active ? "active" : "archived"} />}
+                    options={[
+                      { value: "active", label: "Ativo" },
+                      { value: "archived", label: "Arquivado" }
+                    ]}
+                    onSave={(value) => saveProductField(product, { is_active: value === "active" })}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </Card>
       </div>

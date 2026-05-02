@@ -43,21 +43,21 @@ export default function ForgotPasswordPage() {
 
   return (
     <Card className="w-full max-w-xl p-8">
-      <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Recuperação</p>
-      <h1 className="mt-4 text-3xl font-semibold text-slate-900">Solicitar redefinição de senha</h1>
+      <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#00ff88]">Recuperação</p>
+      <h1 className="mt-4 text-3xl font-semibold text-[var(--fg)]">Solicitar redefinição de senha</h1>
       <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
         <div>
           <Label>E-mail</Label>
           <Input {...register("email")} />
           {errors.email && <p className="mt-2 text-sm text-rose-600">{errors.email.message}</p>}
         </div>
-        {errors.root && <p className="text-sm text-slate-600">{errors.root.message}</p>}
+        {errors.root && <p className="text-sm text-[var(--fg-muted)]">{errors.root.message}</p>}
         <Button className="w-full" disabled={isSubmitting} type="submit">
           {isSubmitting ? "Solicitando..." : "Enviar instruções"}
         </Button>
       </form>
       <div className="mt-6">
-        <Link href="/login" className="text-sm text-blue-700 hover:underline">
+        <Link href="/login" className="text-sm font-medium text-[#00d4ff] hover:underline">
           Voltar para login
         </Link>
       </div>

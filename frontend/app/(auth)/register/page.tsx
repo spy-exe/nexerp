@@ -238,11 +238,11 @@ export default function RegisterPage() {
           />
           <label htmlFor="terms" className="cursor-pointer text-sm text-[#888888]">
             Li e aceito os{" "}
-            <Link href="/" className="text-[#00d4ff] hover:underline">
+            <Link href="/terms" className="text-[#00d4ff] hover:underline">
               Termos de Uso
             </Link>{" "}
             e a{" "}
-            <Link href="/" className="text-[#00d4ff] hover:underline">
+            <Link href="/privacy" className="text-[#00d4ff] hover:underline">
               Política de Privacidade
             </Link>
             .
