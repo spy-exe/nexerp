@@ -11,12 +11,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
+  const isSuperadmin = user?.company_id === null && user.roles.some((role) => role.name === "superadmin")
 
   useEffect(() => {
     if (!accessToken) {
       router.replace("/login")
+      return
     }
-  }, [accessToken, router])
+    if (isSuperadmin && !pathname.startsWith("/admin")) {
+      router.replace("/admin")
+      return
+    }
+    if (isSuperadmin === false && pathname.startsWith("/admin")) {
+      router.replace("/dashboard")
+    }
+  }, [accessToken, isSuperadmin, pathname, router])
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.08),_transparent_35%),linear-gradient(180deg,_#f6f1e8_0%,_#f8fafc_60%)]">

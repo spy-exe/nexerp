@@ -2,6 +2,28 @@
 
 import { apiFetch } from "@/lib/api"
 
+export type CompanyPayload = {
+  id: string
+  trade_name: string
+  legal_name: string
+  cnpj: string
+  email: string
+  plan: string
+  onboarding_completed: boolean
+  timezone: string
+  currency: string
+  phone?: string | null
+  address_zip?: string | null
+  address_state?: string | null
+  address_city?: string | null
+  address_street?: string | null
+  address_number?: string | null
+  address_neighborhood?: string | null
+  logo_url?: string | null
+  tax_regime?: string | null
+  cnae?: string | null
+}
+
 export type SessionPayload = {
   access_token: string
   token_type: string
@@ -9,22 +31,114 @@ export type SessionPayload = {
   permissions: string[]
   user: {
     id: string
-    company_id: string
+    company_id: string | null
     name: string
     email: string
     is_active: boolean
     roles: Array<{ id: string; name: string; permissions: string[] }>
   }
-  company: {
+  company: CompanyPayload | null
+}
+
+export type UsageMetric = {
+  current: number
+  limit: number
+  percentage: number
+}
+
+export type SubscriptionUsage = {
+  plan: {
     id: string
-    trade_name: string
-    legal_name: string
-    cnpj: string
-    email: string
-    onboarding_completed: boolean
-    timezone: string
-    currency: string
+    name: string
+    slug: string
+    price_monthly: string
+    limits: {
+      max_users: number
+      max_products: number
+      max_sales_per_month: number
+    }
   }
+  status: string
+  trial_ends_at: string | null
+  usage: {
+    users: UsageMetric
+    products: UsageMetric
+    sales_per_month: UsageMetric
+  }
+}
+
+export type Plan = {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  max_users: number
+  max_products: number
+  max_sales_per_month: number
+  features: Record<string, unknown>
+  price_monthly: string
+  is_active: boolean
+  created_at: string
+}
+
+export type SubscriptionAdmin = {
+  id: string
+  company_id: string
+  plan_id: string
+  status: string
+  trial_ends_at: string | null
+  current_period_start: string | null
+  current_period_end: string | null
+  canceled_at: string | null
+  suspension_reason: string | null
+  created_at: string
+  updated_at: string
+  plan: Plan
+}
+
+export type BillingHistory = {
+  id: string
+  company_id: string
+  subscription_id: string
+  amount: string
+  currency: string
+  status: string
+  description: string | null
+  invoice_url: string | null
+  paid_at: string | null
+  created_at: string
+}
+
+export type AdminCompanyListItem = {
+  company: CompanyPayload
+  is_active: boolean
+  created_at: string
+  subscription: SubscriptionAdmin | null
+}
+
+export type AdminCompanyDetail = {
+  company: CompanyPayload
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  subscription: SubscriptionAdmin | null
+  usage: SubscriptionUsage["usage"] | null
+  billing_history: BillingHistory[]
+}
+
+export type AdminStats = {
+  total_companies: number
+  active_today: number
+  trialing: number
+}
+
+export type Feedback = {
+  id: string | null
+  company_id: string | null
+  user_id: string | null
+  message: string | null
+  rating: number | null
+  created_at: string | null
 }
 
 export type Product = {
@@ -221,18 +335,82 @@ export async function getMe() {
   return apiFetch<{
     permissions: string[]
     user: SessionPayload["user"]
-    company: SessionPayload["company"]
+    company: CompanyPayload | null
   }>("/auth/me")
 }
 
 export async function getCompany() {
-  return apiFetch<SessionPayload["company"]>("/companies/me")
+  return apiFetch<CompanyPayload>("/companies/me")
 }
 
 export async function updateOnboarding(payload: unknown) {
-  return apiFetch<SessionPayload["company"]>("/companies/me/onboarding", {
+  return apiFetch<CompanyPayload>("/companies/me/onboarding", {
     method: "PATCH",
     body: JSON.stringify(payload)
+  })
+}
+
+export async function getSubscriptionUsage() {
+  return apiFetch<SubscriptionUsage>("/subscription/usage")
+}
+
+export async function listAdminCompanies() {
+  return apiFetch<AdminCompanyListItem[]>("/admin/companies")
+}
+
+export async function getAdminCompany(companyId: string) {
+  return apiFetch<AdminCompanyDetail>(`/admin/companies/${companyId}`)
+}
+
+export async function suspendAdminCompany(companyId: string, reason: string) {
+  return apiFetch<SubscriptionAdmin>(`/admin/companies/${companyId}/suspend`, {
+    method: "PATCH",
+    body: JSON.stringify({ reason })
+  })
+}
+
+export async function reactivateAdminCompany(companyId: string) {
+  return apiFetch<SubscriptionAdmin>(`/admin/companies/${companyId}/reactivate`, {
+    method: "PATCH"
+  })
+}
+
+export async function changeAdminCompanyPlan(companyId: string, payload: { plan_id?: string; plan_slug?: string }) {
+  return apiFetch<SubscriptionAdmin>(`/admin/companies/${companyId}/plan`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function getAdminStats() {
+  return apiFetch<AdminStats>("/admin/stats")
+}
+
+export async function listAdminFeedbacks() {
+  return apiFetch<Feedback[]>("/admin/feedbacks")
+}
+
+export async function listAdminPlans() {
+  return apiFetch<Plan[]>("/admin/plans")
+}
+
+export async function createAdminPlan(payload: unknown) {
+  return apiFetch<Plan>("/admin/plans", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateAdminPlan(planId: string, payload: unknown) {
+  return apiFetch<Plan>(`/admin/plans/${planId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function deleteAdminPlan(planId: string) {
+  return apiFetch<void>(`/admin/plans/${planId}`, {
+    method: "DELETE"
   })
 }
 

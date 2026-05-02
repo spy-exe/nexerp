@@ -32,7 +32,8 @@ export default function LoginPage() {
     try {
       const session = await login(values)
       setSession(session)
-      router.push("/dashboard")
+      const isSuperadmin = session.user.company_id === null && session.user.roles.some((role) => role.name === "superadmin")
+      router.push(isSuperadmin ? "/admin" : "/dashboard")
     } catch (error) {
       const message = error instanceof Error ? error.message : "Falha ao autenticar."
       setError("root", { message })

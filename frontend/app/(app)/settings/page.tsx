@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ClipboardList, ShieldCheck } from "lucide-react"
+import { ClipboardList, CreditCard, ShieldCheck } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
 
@@ -15,6 +15,12 @@ export default function SettingsPage() {
       </Card>
 
       <section className="grid gap-6 md:grid-cols-2">
+        <SettingsLink
+          href="/settings/subscription"
+          icon={CreditCard}
+          title="Assinatura"
+          description="Acompanhe plano, trial e limites de uso."
+        />
         <SettingsLink
           href="/settings/permissions"
           icon={ShieldCheck}
