@@ -353,22 +353,14 @@ class AuthService:
 
     async def _issue_session(self, user: User) -> tuple[AuthSessionResponse, str]:
         permissions = sorted(self.collect_permissions(user))
-        access_token = build_access_token(
-            str(user.id),
-            self.settings,
-            {
-                "company_id": str(user.company_id),
-                "email": user.email,
-                "permissions": permissions,
-            },
-        )
-        refresh_token = build_refresh_token(
-            str(user.id),
-            self.settings,
-            {
-                "company_id": str(user.company_id),
-            },
-        )
+        access_claims = {"email": user.email, "permissions": permissions}
+        refresh_claims = {}
+        if user.company_id is not None:
+            access_claims["company_id"] = str(user.company_id)
+            refresh_claims["company_id"] = str(user.company_id)
+
+        access_token = build_access_token(str(user.id), self.settings, access_claims)
+        refresh_token = build_refresh_token(str(user.id), self.settings, refresh_claims)
         refresh_payload = decode_token(refresh_token, self.settings, "refresh")
         refresh_record = RefreshToken(
             user_id=user.id,

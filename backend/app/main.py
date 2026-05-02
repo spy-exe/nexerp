@@ -33,6 +33,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         {"name": "reports", "description": "Relatórios avançados de vendas, estoque e financeiro."},
         {"name": "audit", "description": "Trilha de auditoria para ações críticas."},
         {"name": "permissions", "description": "Permissões granulares por módulo e papéis."},
+        {"name": "subscription", "description": "Assinatura, limites de plano e uso atual."},
+        {"name": "admin", "description": "Painel SaaS para superadmin."},
         {"name": "health", "description": "Health checks da aplicação."},
     ]
 

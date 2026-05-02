@@ -14,7 +14,7 @@ class AuditService:
     def log(
         self,
         *,
-        company_id: UUID,
+        company_id: UUID | None,
         action: str,
         table_name: str,
         record_id: str,
@@ -24,6 +24,9 @@ class AuditService:
         ip_address: str | None = None,
         note: str | None = None,
     ) -> None:
+        if company_id is None:
+            return
+
         self.db.add(
             AuditLog(
                 company_id=company_id,

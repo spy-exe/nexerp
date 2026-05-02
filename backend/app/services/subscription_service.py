@@ -87,8 +87,7 @@ class SubscriptionService:
         subscription.status = SubscriptionStatus.suspended.value
         subscription.suspension_reason = reason
         await self.db.commit()
-        await self.db.refresh(subscription)
-        return subscription
+        return await self._get_required_subscription(company_id)
 
     async def reactivate_company(self, company_id: UUID) -> Subscription:
         subscription = await self._get_required_subscription(company_id)
@@ -96,8 +95,7 @@ class SubscriptionService:
         subscription.suspension_reason = None
         subscription.canceled_at = None
         await self.db.commit()
-        await self.db.refresh(subscription)
-        return subscription
+        return await self._get_required_subscription(company_id)
 
     async def cancel_subscription(self, company_id: UUID) -> Subscription:
         subscription = await self._get_required_subscription(company_id)
@@ -106,8 +104,7 @@ class SubscriptionService:
         subscription.canceled_at = now
         subscription.current_period_end = now
         await self.db.commit()
-        await self.db.refresh(subscription)
-        return subscription
+        return await self._get_required_subscription(company_id)
 
     async def change_plan(self, company_id: UUID, plan_id: UUID) -> Subscription:
         subscription = await self._get_required_subscription(company_id)
@@ -117,8 +114,7 @@ class SubscriptionService:
         subscription.status = self._reactivated_status(subscription)
         subscription.suspension_reason = None
         await self.db.commit()
-        await self.db.refresh(subscription)
-        return subscription
+        return await self._get_required_subscription(company_id)
 
     async def create_beta_subscription(self, company_id: UUID) -> Subscription:
         plan = await self._get_or_create_beta_plan()
