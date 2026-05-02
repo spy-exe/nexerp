@@ -48,7 +48,7 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    company_id: UUID
+    company_id: UUID | None
     name: str
     email: EmailStr
     is_active: bool
@@ -61,12 +61,12 @@ class AuthSessionResponse(BaseModel):
     expires_in: int
     permissions: list[str]
     user: UserResponse
-    company: CompanyResponse
+    company: CompanyResponse | None
 
 
 class CurrentUserResponse(BaseModel):
     user: UserResponse
-    company: CompanyResponse
+    company: CompanyResponse | None
     permissions: list[str]
 
 

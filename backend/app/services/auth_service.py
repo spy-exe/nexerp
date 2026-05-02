@@ -34,6 +34,7 @@ from app.schemas.auth import (
 )
 from app.schemas.company import CompanyResponse
 from app.services.audit_service import AuditService
+from app.services.subscription_service import SubscriptionService
 from app.utils.passwords import validate_password_strength
 
 
@@ -148,6 +149,7 @@ class AuthService:
         company = Company(**payload.company.model_dump())
         self.db.add(company)
         await self.db.flush()
+        await SubscriptionService(self.db).create_beta_subscription(company.id)
 
         roles = await self._create_system_roles(company.id)
         user = User(
@@ -387,7 +389,7 @@ class AuthService:
             expires_in=self.settings.access_token_expire_minutes * 60,
             permissions=permissions,
             user=UserResponse.model_validate(user),
-            company=CompanyResponse.model_validate(user.company),
+            company=CompanyResponse.model_validate(user.company) if user.company is not None else None,
         )
         return response, refresh_token
 
