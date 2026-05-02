@@ -37,12 +37,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [accessToken, company?.onboarding_completed, queryClient, router])
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#0a0a0a]">
       <div className="mx-auto flex min-h-screen max-w-[1600px]">
         <AppSidebar pathname={pathname} />
-        <main className="flex-1 px-5 py-5 md:px-8 md:py-8">
+        <main className="flex-1 px-5 py-5 md:px-7 md:py-6">
           <AppHeader />
-          <div className="mt-6">{children}</div>
+          <div className="mt-5">{children}</div>
         </main>
       </div>
     </div>
