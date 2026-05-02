@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ClipboardList, CreditCard, ShieldCheck } from "lucide-react"
+import { ClipboardList, CreditCard, MessageSquareText, ShieldCheck } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
 
@@ -32,6 +32,12 @@ export default function SettingsPage() {
           icon={ClipboardList}
           title="Auditoria"
           description="Consulte ações críticas registradas por usuário, tabela e evento."
+        />
+        <SettingsLink
+          href="/settings/feedback"
+          icon={MessageSquareText}
+          title="Feedback"
+          description="Envie melhorias para o ciclo contínuo do produto."
         />
       </section>
     </div>

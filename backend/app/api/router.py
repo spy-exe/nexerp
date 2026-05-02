@@ -7,6 +7,7 @@ from app.api.v1.categories import router as categories_router
 from app.api.v1.companies import router as companies_router
 from app.api.v1.customers import router as customers_router
 from app.api.v1.dashboard import router as dashboard_router
+from app.api.v1.feedbacks import router as feedbacks_router
 from app.api.v1.finance import router as finance_router
 from app.api.v1.fiscal import router as fiscal_router
 from app.api.v1.health import router as health_router
@@ -37,4 +38,5 @@ api_router.include_router(reports_router)
 api_router.include_router(audit_router)
 api_router.include_router(permissions_router)
 api_router.include_router(subscription_router)
+api_router.include_router(feedbacks_router)
 api_router.include_router(admin_router)

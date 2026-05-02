@@ -92,6 +92,34 @@ async def test_superadmin_plan_crud(app, client) -> None:
     assert delete_response.status_code == 204
 
 
+@pytest.mark.asyncio
+async def test_tenant_feedback_is_visible_to_superadmin(app, client) -> None:
+    session = await bootstrap_session(client)
+
+    feedback_response = await client.post(
+        "/api/v1/feedbacks",
+        headers=session["headers"],
+        json={"message": "Fluxo de vendas ficou mais rápido.", "rating": 5},
+    )
+    assert feedback_response.status_code == 201, feedback_response.text
+    assert feedback_response.json()["company_name"] == "ConcreArte"
+
+    await _create_superadmin(app)
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@nexerp.com", "password": "NexAdmin@2026"},
+    )
+    admin_headers = {"Authorization": f"Bearer {login_response.json()['access_token']}"}
+
+    admin_response = await client.get("/api/v1/admin/feedbacks", headers=admin_headers)
+    assert admin_response.status_code == 200
+    payload = admin_response.json()
+    assert payload[0]["message"] == "Fluxo de vendas ficou mais rápido."
+    assert payload[0]["rating"] == 5
+    assert payload[0]["company_name"] == "ConcreArte"
+    assert payload[0]["user_email"] == "admin@concrearte.com.br"
+
+
 async def _create_superadmin(app) -> None:
     async for db in app.state.db_manager.session():
         existing = await db.execute(select(User.id).where(User.email == "admin@nexerp.com"))

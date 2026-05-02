@@ -10,17 +10,18 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from app.core.dependencies import RequestUser, get_db, require_superadmin
 from app.models.company import Company
+from app.models.feedback import Feedback
 from app.models.product import Product
 from app.models.sale import Sale
 from app.models.subscription import BillingHistory, Plan, Subscription, SubscriptionStatus
 from app.models.user import User
+from app.schemas.feedback import FeedbackResponse
 from app.schemas.subscription import (
     AdminCompanyDetail,
     AdminCompanyListItem,
     AdminStatsResponse,
     BillingHistoryResponse,
     ChangeCompanyPlanRequest,
-    FeedbackResponse,
     PlanCreate,
     PlanResponse,
     PlanUpdate,
@@ -142,7 +143,27 @@ async def list_feedbacks(
     current_user: RequestUser = Depends(require_superadmin),
     db: AsyncSession = Depends(get_db),
 ) -> list[FeedbackResponse]:
-    return []
+    result = await db.execute(
+        select(Feedback, Company.trade_name, User.email)
+        .join(Company, Company.id == Feedback.company_id)
+        .outerjoin(User, User.id == Feedback.user_id)
+        .order_by(Feedback.created_at.desc())
+    )
+    return [
+        FeedbackResponse.model_validate(
+            {
+                "id": feedback.id,
+                "company_id": feedback.company_id,
+                "user_id": feedback.user_id,
+                "company_name": company_name,
+                "user_email": user_email,
+                "message": feedback.message,
+                "rating": feedback.rating,
+                "created_at": feedback.created_at,
+            }
+        )
+        for feedback, company_name, user_email in result.all()
+    ]
 
 
 @router.get("/plans", response_model=list[PlanResponse], summary="Listar planos")

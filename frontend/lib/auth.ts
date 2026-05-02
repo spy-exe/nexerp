@@ -133,12 +133,14 @@ export type AdminStats = {
 }
 
 export type Feedback = {
-  id: string | null
-  company_id: string | null
+  id: string
+  company_id: string
   user_id: string | null
-  message: string | null
+  company_name: string | null
+  user_email: string | null
+  message: string
   rating: number | null
-  created_at: string | null
+  created_at: string
 }
 
 export type Product = {
@@ -388,6 +390,13 @@ export async function getAdminStats() {
 
 export async function listAdminFeedbacks() {
   return apiFetch<Feedback[]>("/admin/feedbacks")
+}
+
+export async function createFeedback(payload: { message: string; rating?: number | null }) {
+  return apiFetch<Feedback>("/feedbacks", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
 }
 
 export async function listAdminPlans() {

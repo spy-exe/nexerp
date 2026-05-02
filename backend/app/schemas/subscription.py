@@ -135,11 +135,3 @@ class AdminStatsResponse(BaseModel):
     active_today: int
     trialing: int
 
-
-class FeedbackResponse(BaseModel):
-    id: UUID | None = None
-    company_id: UUID | None = None
-    user_id: UUID | None = None
-    message: str | None = None
-    rating: int | None = None
-    created_at: datetime | None = None
