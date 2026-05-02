@@ -34,6 +34,8 @@ type DraftSaleItem = {
   product_name: string
   quantity: number
   unit_price: number
+  discount_value: number
+  discount_type: "fixed" | "percent"
 }
 
 type DraftPayment = {
@@ -57,10 +59,13 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
 
   const [customerId, setCustomerId] = useState("")
   const [notes, setNotes] = useState("")
-  const [discountAmount, setDiscountAmount] = useState("0")
+  const [discountValue, setDiscountValue] = useState("0")
+  const [discountType, setDiscountType] = useState<"fixed" | "percent">("fixed")
   const [selectedProductId, setSelectedProductId] = useState("")
   const [productQuantity, setProductQuantity] = useState("1")
   const [productPrice, setProductPrice] = useState("")
+  const [itemDiscountValue, setItemDiscountValue] = useState("0")
+  const [itemDiscountType, setItemDiscountType] = useState<"fixed" | "percent">("fixed")
   const [barcodeValue, setBarcodeValue] = useState("")
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<DraftPayment["method"]>("pix")
   const [paymentAmount, setPaymentAmount] = useState("")
@@ -69,9 +74,22 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
   const [formError, setFormError] = useState<string | null>(null)
   const [inlineError, setInlineError] = useState<string | null>(null)
 
+  function calcItemDiscount(item: DraftSaleItem): number {
+    const lineSubtotal = item.quantity * item.unit_price
+    if (item.discount_type === "percent") return (lineSubtotal * item.discount_value) / 100
+    return item.discount_value
+  }
+
   const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0), [items])
-  const discount = Number(discountAmount || 0)
-  const total = Math.max(subtotal - discount, 0)
+  const itemsTotal = useMemo(() => items.reduce((sum, item) => {
+    const lineSubtotal = item.quantity * item.unit_price
+    return sum + lineSubtotal - calcItemDiscount(item)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, 0), [items])
+  const globalDiscount = discountType === "percent"
+    ? (itemsTotal * Number(discountValue || 0)) / 100
+    : Number(discountValue || 0)
+  const total = Math.max(itemsTotal - globalDiscount, 0)
   const paidAmount = useMemo(() => payments.reduce((sum, payment) => sum + payment.amount, 0), [payments])
   const changeAmount = Math.max(paidAmount - total, 0)
 
@@ -80,7 +98,10 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
     onSuccess: async (sale) => {
       setCustomerId("")
       setNotes("")
-      setDiscountAmount("0")
+      setDiscountValue("0")
+      setDiscountType("fixed")
+      setItemDiscountValue("0")
+      setItemDiscountType("fixed")
       setSelectedProductId("")
       setProductQuantity("1")
       setProductPrice("")
@@ -117,10 +138,11 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
       return
     }
 
-    addProductToCart(product, qty, unitPrice)
+    addProductToCart(product, qty, unitPrice, Number(itemDiscountValue || 0), itemDiscountType)
     setSelectedProductId("")
     setProductQuantity("1")
     setProductPrice("")
+    setItemDiscountValue("0")
   }
 
   function handleBarcodeSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -135,13 +157,13 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
       setFormError(`Produto não encontrado para o código ${code}.`)
       return
     }
-    addProductToCart(product, 1, Number(product.sale_price))
+    addProductToCart(product, 1, Number(product.sale_price), 0, "fixed")
     setBarcodeValue("")
   }
 
-  function addProductToCart(product: Product, qty: number, unitPrice: number) {
+  function addProductToCart(product: Product, qty: number, unitPrice: number, discountVal: number, discType: "fixed" | "percent") {
     setItems((current) => {
-      const existingIndex = current.findIndex((item) => item.product_id === product.id && item.unit_price === unitPrice)
+      const existingIndex = current.findIndex((item) => item.product_id === product.id && item.unit_price === unitPrice && item.discount_value === discountVal && item.discount_type === discType)
       if (existingIndex === -1) {
         return [
           ...current,
@@ -149,7 +171,9 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             product_id: product.id,
             product_name: product.name,
             quantity: qty,
-            unit_price: unitPrice
+            unit_price: unitPrice,
+            discount_value: discountVal,
+            discount_type: discType
           }
         ]
       }
@@ -183,13 +207,13 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
     await createSaleMutation.mutateAsync({
       customer_id: customerId || null,
       channel,
-      discount_amount: discount,
+      discount_amount: Math.round(globalDiscount * 100) / 100,
       notes: notes || null,
       items: items.map((item) => ({
         product_id: item.product_id,
         quantity: item.quantity,
         unit_price: item.unit_price,
-        discount_amount: 0
+        discount_amount: Math.round(calcItemDiscount(item) * 100) / 100
       })),
       payments
     })
@@ -225,7 +249,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
 
           {channel === "pos" && (
             <form className="mt-8 rounded-2xl border border-blue-200 bg-blue-50 p-4" onSubmit={handleBarcodeSubmit}>
-              <Label className="flex items-center gap-2 text-blue-900">
+              <Label className="flex items-center gap-2 text-[#00d4ff]">
                 <Barcode className="h-4 w-4" />
                 Leitor USB / código de barras
               </Label>
@@ -247,7 +271,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             </form>
           )}
 
-          <div className="mt-8 grid gap-4 md:grid-cols-[1fr_180px_160px_auto]">
+          <div className="mt-8 grid gap-4 md:grid-cols-2 2xl:grid-cols-[minmax(240px,1fr)_140px_140px_140px_auto]">
             <div>
               <Label>Produto</Label>
               <select
@@ -270,12 +294,32 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
               </select>
             </div>
             <div>
-              <Label>Quantidade</Label>
+              <Label>Qtd.</Label>
               <Input type="number" min="1" step="0.001" value={productQuantity} onChange={(event) => setProductQuantity(event.target.value)} />
             </div>
             <div>
-              <Label>Preço unitário</Label>
+              <Label>Preço unit.</Label>
               <Input type="number" min="0" step="0.01" value={productPrice} onChange={(event) => setProductPrice(event.target.value)} />
+            </div>
+            <div>
+              <Label>Desconto item</Label>
+              <div className="flex">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="rounded-r-none"
+                  value={itemDiscountValue}
+                  onChange={(event) => setItemDiscountValue(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className="shrink-0 rounded-r-lg border border-l-0 border-slate-200 bg-slate-50 px-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+                  onClick={() => setItemDiscountType((t) => t === "fixed" ? "percent" : "fixed")}
+                >
+                  {itemDiscountType === "percent" ? "%" : "R$"}
+                </button>
+              </div>
             </div>
             <div className="flex items-end">
               <Button className="w-full gap-2" type="button" onClick={handleAddItem}>
@@ -322,10 +366,26 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             </div>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-[180px_1fr]">
+          <div className="mt-6 grid gap-4 md:grid-cols-[200px_1fr]">
             <div>
               <Label>Desconto global</Label>
-              <Input type="number" min="0" step="0.01" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} />
+              <div className="flex">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="rounded-r-none"
+                  value={discountValue}
+                  onChange={(event) => setDiscountValue(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className="shrink-0 rounded-r-lg border border-l-0 border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+                  onClick={() => setDiscountType((t) => t === "fixed" ? "percent" : "fixed")}
+                >
+                  {discountType === "percent" ? "%" : "R$"}
+                </button>
+              </div>
             </div>
             <div>
               <Label>Observações</Label>
@@ -353,6 +413,14 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
                     <p className="font-semibold text-slate-900">{item.product_name}</p>
                     <p className="mt-1 text-sm text-slate-500">
                       {quantity(item.quantity)} x {currency(item.unit_price)}
+                      {item.discount_value > 0 && (
+                        <span className="ml-2 text-emerald-600">
+                          -{item.discount_type === "percent" ? `${item.discount_value}%` : currency(item.discount_value)}
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-sm font-medium text-slate-700">
+                      {currency(item.quantity * item.unit_price - calcItemDiscount(item))}
                     </p>
                   </div>
                   <Button type="button" variant="ghost" className="h-10 w-10 rounded-full p-0" onClick={() => setItems((current) => current.filter((_, currentIndex) => currentIndex !== index))}>
@@ -369,10 +437,18 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
               <span>Subtotal</span>
               <span>{currency(subtotal)}</span>
             </div>
-            <div className="flex items-center justify-between text-sm text-slate-300">
-              <span>Desconto</span>
-              <span>{currency(discount)}</span>
-            </div>
+            {itemsTotal < subtotal && (
+              <div className="flex items-center justify-between text-sm text-slate-300">
+                <span>Desc. itens</span>
+                <span>- {currency(subtotal - itemsTotal)}</span>
+              </div>
+            )}
+            {globalDiscount > 0 && (
+              <div className="flex items-center justify-between text-sm text-slate-300">
+                <span>Desc. global{discountType === "percent" ? ` (${discountValue}%)` : ""}</span>
+                <span>- {currency(globalDiscount)}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between text-sm text-slate-300">
               <span>Pago</span>
               <span>{currency(paidAmount)}</span>
@@ -430,6 +506,7 @@ function SaleRow({ sale, onSave }: { sale: SaleSummary; onSave: (payload: Partia
   const statusOptions = [
     { value: "draft", label: "Rascunho" },
     { value: "confirmed", label: "Confirmada" },
+    { value: "completed", label: "Concluída" },
     { value: "cancelled", label: "Cancelada" }
   ]
   const statusLabel = statusOptions.find((item) => item.value === sale.status)?.label ?? sale.status

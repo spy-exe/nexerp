@@ -258,6 +258,13 @@ export async function createCategory(payload: unknown) {
   })
 }
 
+export async function updateCategory(categoryId: string, payload: unknown) {
+  return apiFetch<Category>(`/categories/${categoryId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  })
+}
+
 export async function listProducts() {
   return apiFetch<Product[]>("/products")
 }

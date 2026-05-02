@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { InlineEdit } from "@/components/shared/InlineEdit"
 import { PageHeader } from "@/components/shared/PageHeader"
@@ -193,87 +192,6 @@ export function PartyManager({
     }
   }
 
-  const columns: Array<DataTableColumn<BusinessParty>> = [
-    {
-      key: "name",
-      label: title,
-      render: (party) => {
-        const Icon = party.person_kind === "company" ? Building2 : UserRound
-        return (
-          <div className="flex items-start gap-3">
-            <div className="rounded-2xl bg-slate-100 p-2 text-slate-600">
-              <Icon className="h-4 w-4" />
-            </div>
-            <div>
-              <InlineEdit value={party.name} onSave={(value) => savePartyField(party, { name: value })} />
-              <p className="mt-1 text-xs text-slate-500">{party.document_number}</p>
-            </div>
-          </div>
-        )
-      }
-    },
-    {
-      key: "email",
-      label: "E-mail",
-      render: (party) => (
-        <InlineEdit
-          value={party.email ?? ""}
-          displayValue={party.email || "sem e-mail"}
-          onSave={(value) => savePartyField(party, { email: value || null })}
-        />
-      )
-    },
-    {
-      key: "address_city",
-      label: "Cidade",
-      render: (party) => (
-        <InlineEdit
-          value={party.address_city ?? ""}
-          displayValue={`${party.address_city || "Cidade não informada"}${party.address_state ? ` / ${party.address_state}` : ""}`}
-          onSave={(value) => savePartyField(party, { address_city: value || null })}
-        />
-      )
-    },
-    {
-      key: "status",
-      label: "Status",
-      render: (party) => (
-        <InlineEdit
-          type="select"
-          value={party.is_active ? "active" : "archived"}
-          displayValue={<StatusBadge status={party.is_active ? "active" : "archived"} />}
-          options={[
-            { value: "active", label: "Ativo" },
-            { value: "archived", label: "Arquivado" }
-          ]}
-          onSave={(value) => savePartyField(party, { is_active: value === "active" })}
-        />
-      )
-    },
-    {
-      key: "actions",
-      label: "Ações",
-      render: (party) => (
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="ghost" size="icon" onClick={() => handleEdit(party)}>
-            <PencilLine className="h-4 w-4" />
-          </Button>
-          {party.is_active && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="text-red-600 hover:bg-red-50 hover:text-red-700"
-              onClick={() => setPendingArchive(party)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      )
-    }
-  ]
-
   return (
     <div className="space-y-6">
       <PageHeader eyebrow={subtitle} title={listTitle} subtitle="Cadastros editáveis com ações inline, alteração de status e confirmação para arquivamento." />
@@ -367,13 +285,70 @@ export function PartyManager({
       <Card className="p-6">
         <h2 className="text-xl font-semibold text-slate-900">{listTitle}</h2>
         {inlineError && <p className="mt-3 text-sm text-rose-600">{inlineError}</p>}
-        <div className="mt-5">
-          <DataTable
-            columns={columns}
-            rows={partiesQuery.data ?? []}
-            getRowKey={(party) => party.id}
-            emptyState={<EmptyState title="Nenhum cadastro encontrado" description={`Crie o primeiro ${title.toLowerCase()} para começar a operar.`} />}
-          />
+        <div className="mt-5 space-y-3">
+          {!partiesQuery.data?.length && (
+            <EmptyState title="Nenhum cadastro encontrado" description={`Crie o primeiro ${title.toLowerCase()} para começar a operar.`} />
+          )}
+          {partiesQuery.data?.map((party) => {
+            const Icon = party.person_kind === "company" ? Building2 : UserRound
+            return (
+              <div key={party.id} className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="shrink-0 rounded-xl bg-slate-100 p-2 text-slate-600">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <InlineEdit value={party.name} onSave={(value) => savePartyField(party, { name: value })} />
+                      <p className="mt-0.5 text-xs text-slate-400">{party.document_number}</p>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+                        <span>
+                          <InlineEdit
+                            value={party.email ?? ""}
+                            displayValue={party.email || "sem e-mail"}
+                            onSave={(value) => savePartyField(party, { email: value || null })}
+                          />
+                        </span>
+                        <span>
+                          <InlineEdit
+                            value={party.address_city ?? ""}
+                            displayValue={`${party.address_city || "cidade não informada"}${party.address_state ? ` / ${party.address_state}` : ""}`}
+                            onSave={(value) => savePartyField(party, { address_city: value || null })}
+                          />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <InlineEdit
+                      type="select"
+                      value={party.is_active ? "active" : "archived"}
+                      displayValue={<StatusBadge status={party.is_active ? "active" : "archived"} />}
+                      options={[
+                        { value: "active", label: "Ativo" },
+                        { value: "archived", label: "Arquivado" }
+                      ]}
+                      onSave={(value) => savePartyField(party, { is_active: value === "active" })}
+                    />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => handleEdit(party)}>
+                      <PencilLine className="h-4 w-4" />
+                    </Button>
+                    {party.is_active && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                        onClick={() => setPendingArchive(party)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </Card>
       </div>
