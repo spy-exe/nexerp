@@ -59,7 +59,7 @@ async def login(
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> AuthSessionResponse:
-    await enforce_rate_limit(request, bucket="auth:login", limit=5, window_seconds=15 * 60)
+    await enforce_rate_limit(request, bucket="auth:login", limit=50, window_seconds=15 * 60)
     service = AuthService(db, settings, request.app.state.token_store)
     session, refresh_token = await service.authenticate(payload, get_client_ip(request))
     set_refresh_cookie(response, refresh_token, settings)

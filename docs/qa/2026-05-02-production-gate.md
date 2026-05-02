@@ -6,11 +6,11 @@ Destino `production`: bloqueado operacionalmente. Nao existe branch local `produ
 
 ## Resultado
 
-Status: aprovado para o escopo visual validado; bloqueado para release completo ate revisar riscos de backend e higiene do worktree.
+Status: aprovado para o escopo validado; release completo ainda depende da definicao do destino de producao (`main` ou uma branch `production` criada/protegida).
 
 ## Evidencias
 
-Screenshots Playwright: `.qa/cycle-2026-05-02-03/`
+Screenshots Playwright: `.qa/cycle-2026-05-02-04/`
 
 Capturas concluídas sem falha:
 
@@ -34,13 +34,16 @@ Capturas concluídas sem falha:
 - `dashboard-light.png`
 - `products-light.png`
 - `categories-light.png`
+- `purchases-light.png`
 - `dashboard-mobile.png`
 - `products-mobile.png`
+- `purchases-mobile.png`
 
 ## Validacoes executadas
 
 - `npm run type-check` em `frontend`: passou.
 - `npm run lint` em `frontend`: passou.
+- `npm run build` em `frontend`: passou.
 - `docker compose exec backend pytest -q`: passou, `11 passed`.
 - QA visual automatizado com Chromium headless: passou.
 - Console do browser: sem erros.
@@ -55,18 +58,24 @@ Capturas concluídas sem falha:
 - Dashboard em dark mode, light mode e mobile carregou sem regressao visual evidente.
 - Paginas de produtos, categorias, PDV, estoque, clientes, fornecedores, financeiro, compras, relatorios e configuracoes carregaram em dark mode sem blocos brancos indevidos.
 - Toggle de tema aparece no app autenticado e alterna entre dark/light.
+- Compras exibem toggle "Gerar despesa no financeiro" com botao de informacao em dark, light e mobile.
+
+## Decisoes registradas
+
+- Rate limit de login `5 -> 50` foi aceito como decisao de produto para evitar bloqueio operacional durante testes.
+- Venda cria transacao financeira de receita na primeira conta ativa, vinculada ao cliente quando houver.
+- Compra pode criar transacao financeira de despesa quando `create_financial_transaction` estiver ativo, vinculada ao fornecedor.
+- Artefatos locais foram bloqueados no `.gitignore`: `backend/*.db`, `backend/run_seed.py`, `backend/seed.py`, `frontend/frontend/`.
 
 ## Bloqueios para production
 
-- `backend/app/api/v1/auth.py`: limite de login mudou de `5` para `50` tentativas em 15 minutos. Isso reduz protecao contra brute force e precisa de justificativa explicita antes de release.
-- `backend/app/services/sale_service.py`: venda agora cria transacao financeira automaticamente na primeira conta ativa. Precisa de teste cobrindo idempotencia, conta escolhida, saldo, conciliacao e compatibilidade com multiplos meios de pagamento.
-- O fluxo de compra nao cria despesa financeira equivalente, entao o comportamento financeiro ficou assimetrico entre venda e compra.
-- Existem arquivos nao rastreados que nao devem ir para production sem revisao: `backend/nexerp.db`, `backend/run_seed.py`, `backend/seed.py`, `frontend/frontend/`.
+- Nao existe branch local/remota `production`; definir se producao sera `main` ou criar `production`.
+- Antes do merge final, confirmar se `feature/branding-ui` sera promovida inteira ou se o release sera fatiado por PRs menores.
 
 ## Decisao QA
 
-Nao liberar a branch inteira como production neste estado.
+Nao fazer merge direto sem branch alvo e PR/gate final.
 
-Liberavel: escopo visual validado nesta rodada.
+Liberavel: escopo validado nesta rodada.
 
-Nao liberavel sem revisao: alteracoes de seguranca/autenticacao, lancamento financeiro automatico e arquivos nao rastreados de ambiente/seed.
+Nao liberavel sem decisao: destino de producao e politica de promocao da branch.

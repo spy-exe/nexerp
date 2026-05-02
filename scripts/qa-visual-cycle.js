@@ -205,10 +205,12 @@ async function main() {
   captures.push(await capture(page, "dashboard-light", "/dashboard", "main"))
   captures.push(await capture(page, "products-light", "/products", "main"))
   captures.push(await capture(page, "categories-light", "/categories", "main"))
+  captures.push(await capture(page, "purchases-light", "/purchases", "main"))
 
   await setTheme(page, "dark")
   captures.push(await capture(page, "dashboard-mobile", "/dashboard", "main", { viewport: mobile }))
   captures.push(await capture(page, "products-mobile", "/products", "main", { viewport: mobile }))
+  captures.push(await capture(page, "purchases-mobile", "/purchases", "main", { viewport: mobile }))
 
   await browser.close()
 

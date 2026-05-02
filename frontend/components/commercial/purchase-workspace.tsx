@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ClipboardPlus, Plus, ShoppingBasket, Trash2, Truck } from "lucide-react"
+import { ClipboardPlus, Info, Plus, ShoppingBasket, Trash2, Truck } from "lucide-react"
 
 import { InlineEdit } from "@/components/shared/InlineEdit"
 import { Button } from "@/components/ui/button"
@@ -42,6 +42,7 @@ export function PurchaseWorkspace() {
   const [productQuantity, setProductQuantity] = useState("1")
   const [productCost, setProductCost] = useState("")
   const [items, setItems] = useState<DraftPurchaseItem[]>([])
+  const [createFinancialTransaction, setCreateFinancialTransaction] = useState(true)
   const [formError, setFormError] = useState<string | null>(null)
   const [inlineError, setInlineError] = useState<string | null>(null)
 
@@ -56,11 +57,15 @@ export function PurchaseWorkspace() {
       setProductQuantity("1")
       setProductCost("")
       setItems([])
+      setCreateFinancialTransaction(true)
       setFormError(null)
       queryClient.setQueryData<PurchaseSummary[]>(["purchases"], (current = []) => [purchase, ...current])
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] }),
-        queryClient.invalidateQueries({ queryKey: ["balances"] })
+        queryClient.invalidateQueries({ queryKey: ["balances"] }),
+        queryClient.invalidateQueries({ queryKey: ["finance-accounts"] }),
+        queryClient.invalidateQueries({ queryKey: ["finance-transactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["finance-summary"] })
       ])
       toast({ title: "Compra registrada", variant: "success" })
     },
@@ -109,6 +114,7 @@ export function PurchaseWorkspace() {
     }
     await createPurchaseMutation.mutateAsync({
       supplier_id: supplierId,
+      create_financial_transaction: createFinancialTransaction,
       notes: notes || null,
       items: items.map((item) => ({
         product_id: item.product_id,
@@ -204,6 +210,42 @@ export function PurchaseWorkspace() {
               <Input value={notes} onChange={(event) => setNotes(event.target.value)} />
             </div>
           </div>
+
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[color:var(--border)] bg-[var(--bg-muted)] p-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-[var(--fg)]">Gerar despesa no financeiro</p>
+                <button
+                  type="button"
+                  className="group relative inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border)] text-[var(--fg-muted)] transition hover:text-[var(--fg)]"
+                  aria-label="Informações sobre lançamento financeiro automático"
+                  title="Ao ativar, a compra cria uma transação de despesa conciliada na primeira conta financeira ativa e desconta o saldo."
+                >
+                  <Info className="h-4 w-4" />
+                  <span className="pointer-events-none absolute left-1/2 top-9 z-10 hidden w-72 -translate-x-1/2 rounded-lg border border-[color:var(--border)] bg-[var(--bg-card)] p-3 text-left text-xs font-medium leading-5 text-[var(--fg-muted)] shadow-xl group-hover:block group-focus-visible:block">
+                    Ao ativar, a compra cria uma despesa conciliada na primeira conta financeira ativa e desconta o saldo.
+                  </span>
+                </button>
+              </div>
+              <p className="mt-1 text-xs leading-5 text-[var(--fg-muted)]">
+                Use quando a entrada de estoque também representa pagamento ou saída imediata de caixa.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={createFinancialTransaction}
+              className={`inline-flex h-9 min-w-[8rem] items-center justify-between gap-3 rounded-full border px-2 text-xs font-semibold transition ${
+                createFinancialTransaction
+                  ? "border-[#00ff88]/40 bg-[#00ff88]/15 text-[#00ff88]"
+                  : "border-[color:var(--border)] bg-transparent text-[var(--fg-muted)]"
+              }`}
+              onClick={() => setCreateFinancialTransaction((current) => !current)}
+            >
+              <span className={`h-5 w-5 rounded-full transition ${createFinancialTransaction ? "bg-[#00ff88]" : "bg-[var(--fg-muted)]"}`} />
+              {createFinancialTransaction ? "Ativado" : "Desativado"}
+            </button>
+          </div>
         </Card>
 
         <Card className="p-6">
@@ -277,6 +319,7 @@ function PurchaseRow({ purchase, onSave }: { purchase: PurchaseSummary; onSave: 
   const statusOptions = [
     { value: "draft", label: "Rascunho" },
     { value: "confirmed", label: "Confirmada" },
+    { value: "received", label: "Recebida" },
     { value: "cancelled", label: "Cancelada" }
   ]
   const statusLabel = statusOptions.find((item) => item.value === purchase.status)?.label ?? purchase.status
