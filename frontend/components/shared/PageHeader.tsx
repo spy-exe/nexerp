@@ -15,9 +15,9 @@ export function PageHeader({ title, subtitle, eyebrow, actions, className }: Pag
         {eyebrow && (
           <p className="text-xs font-medium uppercase tracking-widest text-[#00ff88]">{eyebrow}</p>
         )}
-        <h1 className="mt-2 font-display text-2xl font-bold text-[#f0f0f0]">{title}</h1>
+        <h1 className="mt-2 font-display text-2xl font-bold text-[var(--fg)]">{title}</h1>
         {subtitle && (
-          <p className="mt-1.5 max-w-3xl text-sm leading-6 text-[#888888]">{subtitle}</p>
+          <p className="mt-1.5 max-w-3xl text-sm leading-6 text-[var(--fg-muted)]">{subtitle}</p>
         )}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}

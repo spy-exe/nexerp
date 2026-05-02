@@ -26,9 +26,18 @@ type ToastContextValue = {
 const ToastContext = createContext<ToastContextValue | null>(null)
 
 const variants: Record<ToastVariant, { icon: typeof CheckCircle2; className: string }> = {
-  success: { icon: CheckCircle2, className: "border-emerald-200 bg-emerald-50 text-emerald-900" },
-  error: { icon: XCircle, className: "border-red-200 bg-red-50 text-red-900" },
-  info: { icon: Info, className: "border-blue-200 bg-blue-50 text-blue-900" },
+  success: {
+    icon: CheckCircle2,
+    className: "border-[#00ff88]/20 bg-[#00ff88]/10 text-[#00ff88]"
+  },
+  error: {
+    icon: XCircle,
+    className: "border-[#ff4444]/20 bg-[#ff4444]/10 text-[#ff4444]"
+  },
+  info: {
+    icon: Info,
+    className: "border-[#00d4ff]/20 bg-[#00d4ff]/10 text-[#00d4ff]"
+  }
 }
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
@@ -46,9 +55,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         const item = { ...input, id, variant: input.variant ?? "info" }
         setItems((current) => [...current, item])
         window.setTimeout(() => {
-          setItems((current) => current.filter((toast) => toast.id !== id))
+          setItems((current) => current.filter((t) => t.id !== id))
         }, 3_000)
-      },
+      }
     }),
     []
   )
@@ -66,7 +75,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 <div
                   key={item.id}
                   className={cn(
-                    "animate-[toast-in_120ms_ease-out] rounded-2xl border px-4 py-3 shadow-[0_8px_30px_rgba(15,23,42,0.12)]",
+                    "animate-[toast-in_120ms_ease-out] rounded-xl border px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.4)]",
                     variant.className
                   )}
                 >
@@ -74,7 +83,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                     <Icon className="mt-0.5 h-4 w-4 shrink-0" />
                     <div>
                       <p className="text-sm font-semibold">{item.title}</p>
-                      {item.description && <p className="mt-1 text-xs opacity-80">{item.description}</p>}
+                      {item.description && (
+                        <p className="mt-1 text-xs opacity-80">{item.description}</p>
+                      )}
                     </div>
                   </div>
                 </div>

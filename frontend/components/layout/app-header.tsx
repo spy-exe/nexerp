@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { logout } from "@/lib/auth"
 import { useAuthStore } from "@/stores/auth-store"
 
@@ -27,13 +28,13 @@ export function AppHeader() {
     : "?"
 
   return (
-    <header className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#111111] px-5 py-3">
+    <header className="flex items-center justify-between rounded-xl border border-[color:var(--border)] bg-[var(--bg-card)] px-5 py-3">
       {/* Breadcrumb / workspace */}
       <div className="flex flex-col">
-        <p className="text-[11px] font-medium uppercase tracking-widest text-[#555555]">
+        <p className="text-[11px] font-medium uppercase tracking-widest text-[var(--fg-soft)]">
           Workspace
         </p>
-        <h2 className="font-display mt-0.5 text-lg font-semibold text-[#f0f0f0]">
+        <h2 className="font-display mt-0.5 text-lg font-semibold text-[var(--fg)]">
           {company?.trade_name ?? "NexERP"}
         </h2>
       </div>
@@ -53,9 +54,11 @@ export function AppHeader() {
           {initials}
         </div>
 
+        <ThemeToggle />
+
         {/* Logout */}
         <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair">
-          <LogOut className="h-4 w-4 text-[#888888]" />
+          <LogOut className="h-4 w-4 text-[var(--fg-muted)]" />
         </Button>
       </div>
     </header>

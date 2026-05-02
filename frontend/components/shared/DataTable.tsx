@@ -35,17 +35,17 @@ export function DataTable<T>({ rows, columns, getRowKey, emptyState, pageSize = 
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#111111]">
+    <div className="overflow-hidden rounded-xl border border-[color:var(--border)] bg-[var(--bg-card)]">
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-white/[0.03] text-xs font-semibold uppercase tracking-wide text-[#888888]">
+          <thead className="bg-[var(--bg-muted)] text-xs font-semibold uppercase tracking-wide text-[var(--fg-muted)]">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
                   className={cn(
                     "h-10 whitespace-nowrap px-4 text-left",
-                    column.key === "actions" && "sticky right-0 bg-[#111111] text-right",
+                    column.key === "actions" && "sticky right-0 bg-[var(--bg-card)] text-right",
                     column.className
                   )}
                 >
@@ -58,14 +58,14 @@ export function DataTable<T>({ rows, columns, getRowKey, emptyState, pageSize = 
             {pageRows.map((row) => (
               <tr
                 key={getRowKey(row)}
-                className="h-12 border-b border-white/[0.04] transition-colors hover:bg-white/[0.03]"
+                className="h-12 border-b border-[color:var(--border)] transition-colors hover:bg-[var(--bg-muted)]"
               >
                 {columns.map((column) => (
                   <td
                     key={column.key}
                     className={cn(
-                      "whitespace-nowrap px-4 py-3 align-middle text-[#d0d0d0]",
-                      column.key === "actions" && "sticky right-0 bg-[#111111] text-right",
+                      "whitespace-nowrap px-4 py-3 align-middle text-[var(--fg)]",
+                      column.key === "actions" && "sticky right-0 bg-[var(--bg-card)] text-right",
                       column.className
                     )}
                   >
@@ -79,7 +79,7 @@ export function DataTable<T>({ rows, columns, getRowKey, emptyState, pageSize = 
           </tbody>
         </table>
       </div>
-      <div className="flex flex-col gap-3 border-t border-white/[0.04] px-4 py-3 text-sm text-[#888888] sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[color:var(--border)] px-4 py-3 text-sm text-[var(--fg-muted)] sm:flex-row sm:items-center sm:justify-between">
         <span>
           Exibindo {from}–{to} de {rows.length} resultados
         </span>

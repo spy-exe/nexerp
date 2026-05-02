@@ -10,8 +10,10 @@ type AuthState = {
   permissions: string[]
   user: SessionPayload["user"] | null
   company: SessionPayload["company"] | null
+  hasHydrated: boolean
   setSession: (session: SessionPayload) => void
   clearSession: () => void
+  setHasHydrated: (hasHydrated: boolean) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -21,6 +23,7 @@ export const useAuthStore = create<AuthState>()(
       permissions: [],
       user: null,
       company: null,
+      hasHydrated: false,
       setSession: (session) =>
         set({
           accessToken: session.access_token,
@@ -34,10 +37,14 @@ export const useAuthStore = create<AuthState>()(
           permissions: [],
           user: null,
           company: null
-        })
+        }),
+      setHasHydrated: (hasHydrated) => set({ hasHydrated })
     }),
     {
-      name: "nexerp-auth"
+      name: "nexerp-auth",
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true)
+      }
     }
   )
 )

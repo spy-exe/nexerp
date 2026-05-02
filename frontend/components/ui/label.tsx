@@ -4,7 +4,7 @@ export function Label({ children, className, htmlFor }: { children: React.ReactN
   return (
     <label
       htmlFor={htmlFor}
-      className={cn("mb-1.5 block text-sm font-medium text-[#aaaaaa]", className)}
+      className={cn("mb-1.5 block text-sm font-medium text-[var(--fg-muted)]", className)}
     >
       {children}
     </label>

@@ -58,13 +58,13 @@ export function AppSidebar({ pathname }: { pathname: string }) {
   const queryClient = useQueryClient()
 
   return (
-    <aside className="hidden w-56 shrink-0 flex-col border-r border-white/[0.06] bg-[#0d0d0d] px-3 py-5 lg:flex">
+    <aside className="hidden w-56 shrink-0 flex-col border-r border-[color:var(--border)] bg-[var(--bg-sidebar)] px-3 py-5 lg:flex">
       {/* Logo */}
       <Link href="/dashboard" className="mb-6 flex items-center gap-2.5 px-2">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#00ff88]">
           <Zap className="h-4 w-4 text-[#0a0a0a]" />
         </div>
-        <span className="font-display text-base font-semibold text-[#f0f0f0]">NexERP</span>
+        <span className="font-display text-base font-semibold text-[var(--fg)]">NexERP</span>
       </Link>
 
       {/* Nav */}
@@ -72,7 +72,7 @@ export function AppSidebar({ pathname }: { pathname: string }) {
         {items.map((group, groupIndex) => (
           <div
             key={groupIndex}
-            className={cn(groupIndex > 0 && "border-t border-white/[0.05] pt-4")}
+            className={cn(groupIndex > 0 && "border-t border-[color:var(--border)] pt-4")}
           >
             <div className="space-y-0.5">
               {group.map((item) => {
@@ -91,13 +91,13 @@ export function AppSidebar({ pathname }: { pathname: string }) {
                       "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-all duration-150",
                       active
                         ? "bg-[#00ff88]/10 font-semibold text-[#00ff88]"
-                        : "text-[#888888] hover:bg-white/[0.04] hover:text-[#cccccc]"
+                        : "text-[var(--fg-muted)] hover:bg-[var(--bg-muted)] hover:text-[var(--fg)]"
                     )}
                   >
                     <Icon
                       className={cn(
                         "h-4 w-4 shrink-0",
-                        active ? "text-[#00ff88]" : "text-[#555555]"
+                        active ? "text-[#00ff88]" : "text-[var(--fg-soft)]"
                       )}
                     />
                     {item.label}

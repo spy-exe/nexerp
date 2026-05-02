@@ -16,8 +16,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const navigationWarmed = useRef(false)
   const accessToken = useAuthStore((state) => state.accessToken)
   const company = useAuthStore((state) => state.company)
+  const hasHydrated = useAuthStore((state) => state.hasHydrated)
 
   useEffect(() => {
+    if (!hasHydrated) {
+      return
+    }
     if (!accessToken) {
       router.replace("/login")
       return
@@ -25,19 +29,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (company && !company.onboarding_completed) {
       router.replace("/onboarding")
     }
-  }, [accessToken, company, router])
+  }, [accessToken, company, hasHydrated, router])
 
   useEffect(() => {
-    if (!accessToken || !company?.onboarding_completed || navigationWarmed.current) {
+    if (!hasHydrated || !accessToken || !company?.onboarding_completed || navigationWarmed.current) {
       return
     }
 
     navigationWarmed.current = true
     return warmAppNavigation(router, queryClient)
-  }, [accessToken, company?.onboarding_completed, queryClient, router])
+  }, [accessToken, company?.onboarding_completed, hasHydrated, queryClient, router])
+
+  if (!hasHydrated) {
+    return <div className="min-h-screen bg-[var(--bg)]" />
+  }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
+    <div className="min-h-screen bg-[var(--bg)]">
       <div className="mx-auto flex min-h-screen max-w-[1600px]">
         <AppSidebar pathname={pathname} />
         <main className="flex-1 px-5 py-5 md:px-7 md:py-6">
