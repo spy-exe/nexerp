@@ -2,12 +2,16 @@
 
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { CheckCircle2, Clock, Plus, XCircle } from "lucide-react"
+import { CheckCircle2, Plus } from "lucide-react"
 
+import { EmptyState } from "@/components/shared/EmptyState"
+import { InlineEdit } from "@/components/shared/InlineEdit"
+import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import {
   createPayable,
   createReceivable,
@@ -16,6 +20,7 @@ import {
   listReceivables,
   payPayable,
   payReceivable,
+  updateInstallment,
   type Installment,
 } from "@/lib/auth"
 import { currency } from "@/lib/utils"
@@ -32,10 +37,12 @@ type Mode = "receivables" | "payables"
 
 export function InstallmentsPanel() {
   const qc = useQueryClient()
+  const { toast } = useToast()
   const today = new Date().toISOString().split("T")[0]
   const [mode, setMode] = useState<Mode>("receivables")
   const [showForm, setShowForm] = useState(false)
   const [payingId, setPayingId] = useState<string | null>(null)
+  const [inlineError, setInlineError] = useState<string | null>(null)
   const [payForm, setPayForm] = useState({ account_id: "", amount: "", date: today })
   const [form, setForm] = useState({ description: "", total_amount: "", due_date: "" })
 
@@ -47,26 +54,68 @@ export function InstallmentsPanel() {
 
   const createMut = useMutation({
     mutationFn: (payload: unknown) => mode === "receivables" ? createReceivable(payload) : createPayable(payload),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["finance-receivables"] })
-      qc.invalidateQueries({ queryKey: ["finance-payables"] })
+    onSuccess: (installment) => {
+      const targetKey = installment.type === "income" ? ["finance-receivables"] : ["finance-payables"]
+      qc.setQueryData<Installment[]>(targetKey, (current = []) => [installment, ...current])
       qc.invalidateQueries({ queryKey: ["finance-summary"] })
       setShowForm(false)
       setForm({ description: "", total_amount: "", due_date: "" })
+      toast({ title: "Parcela criada", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao criar parcela", description: error instanceof Error ? error.message : undefined, variant: "error" })
     },
   })
 
   const payMut = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: unknown }) =>
       mode === "receivables" ? payReceivable(id, payload) : payPayable(id, payload),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["finance-receivables"] })
-      qc.invalidateQueries({ queryKey: ["finance-payables"] })
+    onSuccess: (installment) => {
+      updateInstallmentCache(installment)
       qc.invalidateQueries({ queryKey: ["finance-accounts"] })
       qc.invalidateQueries({ queryKey: ["finance-summary"] })
       setPayingId(null)
+      toast({ title: "Pagamento registrado", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao registrar pagamento", description: error instanceof Error ? error.message : undefined, variant: "error" })
     },
   })
+
+  const updateMut = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: unknown }) => updateInstallment(id, payload),
+    onSuccess: (installment) => {
+      updateInstallmentCache(installment)
+      qc.invalidateQueries({ queryKey: ["finance-summary"] })
+      toast({ title: "Parcela atualizada", variant: "success" })
+    },
+    onError: (error) => {
+      setInlineError(error instanceof Error ? error.message : "Falha ao atualizar parcela.")
+      toast({ title: "Erro ao atualizar parcela", description: error instanceof Error ? error.message : undefined, variant: "error" })
+    }
+  })
+
+  function updateInstallmentCache(installment: Installment) {
+    const targetKey = installment.type === "income" ? ["finance-receivables"] : ["finance-payables"]
+    qc.setQueryData<Installment[]>(targetKey, (current = []) =>
+      current.map((item) => (item.id === installment.id ? installment : item))
+    )
+  }
+
+  async function saveInstallmentField(inst: Installment, payload: Partial<Installment>) {
+    setInlineError(null)
+    const key = inst.type === "income" ? ["finance-receivables"] : ["finance-payables"]
+    const previous = qc.getQueryData<Installment[]>(key)
+    qc.setQueryData<Installment[]>(key, (current = []) =>
+      current.map((item) => (item.id === inst.id ? { ...item, ...payload } : item))
+    )
+    try {
+      await updateMut.mutateAsync({ id: inst.id, payload })
+    } catch (error) {
+      qc.setQueryData(key, previous)
+      throw error
+    }
+  }
 
   function submitCreate() {
     createMut.mutate({ ...form, type: mode === "receivables" ? "income" : "expense" })
@@ -114,7 +163,7 @@ export function InstallmentsPanel() {
           </div>
           <div className="sm:col-span-2 flex gap-2 justify-end items-end">
             <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancelar</Button>
-            <Button size="sm" onClick={submitCreate} disabled={!form.description || !form.total_amount || !form.due_date}>
+            <Button size="sm" onClick={submitCreate} disabled={!form.description || !form.total_amount || !form.due_date} isLoading={createMut.isPending}>
               Criar
             </Button>
           </div>
@@ -122,26 +171,58 @@ export function InstallmentsPanel() {
       )}
 
       <div className="divide-y">
+        {inlineError && <p className="pb-3 text-sm text-rose-600">{inlineError}</p>}
         {items.map(inst => {
           const s = STATUS_LABEL[inst.status] ?? STATUS_LABEL.open
           return (
             <div key={inst.id} className="py-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-800">{inst.description}</p>
+                  <p className="text-sm font-medium text-slate-800">
+                    <InlineEdit
+                      value={inst.description}
+                      onSave={(value) => saveInstallmentField(inst, { description: value })}
+                    />
+                  </p>
                   <p className="text-xs text-slate-400">
-                    Vence: {inst.due_date}
+                    Vence:{" "}
+                    <InlineEdit
+                      type="date"
+                      value={inst.due_date}
+                      onSave={(value) => saveInstallmentField(inst, { due_date: value })}
+                    />
                     {inst.person_name ? ` · ${inst.person_name}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-slate-900">{currency(inst.total_amount)}</p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      <InlineEdit
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={inst.total_amount}
+                        displayValue={currency(inst.total_amount)}
+                        onSave={(value) => saveInstallmentField(inst, { total_amount: value })}
+                      />
+                    </p>
                     {inst.paid_amount !== "0.00" && (
                       <p className="text-xs text-slate-500">Pago: {currency(inst.paid_amount)}</p>
                     )}
                   </div>
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.color}`}>{s.label}</span>
+                  <InlineEdit
+                    type="select"
+                    value={inst.status}
+                    displayValue={<StatusBadge status={inst.status} label={s.label} />}
+                    options={[
+                      { value: "open", label: "Aberto" },
+                      { value: "partial", label: "Parcial" },
+                      { value: "paid", label: "Pago" },
+                      { value: "overdue", label: "Vencido" },
+                      { value: "cancelled", label: "Cancelado" }
+                    ]}
+                    onSave={(value) => saveInstallmentField(inst, { status: value as Installment["status"] })}
+                  />
                   {inst.status !== "paid" && inst.status !== "cancelled" && (
                     <Button size="sm" variant="outline" onClick={() => {
                       setPayingId(inst.id)
@@ -158,7 +239,7 @@ export function InstallmentsPanel() {
                   <div>
                     <Label className="text-xs">Conta</Label>
                     <select
-                      className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-sm"
+                      className="h-8 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       value={payForm.account_id}
                       onChange={e => setPayForm(f => ({ ...f, account_id: e.target.value }))}
                     >
@@ -175,7 +256,7 @@ export function InstallmentsPanel() {
                   </div>
                   <div className="sm:col-span-3 flex gap-2 justify-end">
                     <Button variant="outline" size="sm" onClick={() => setPayingId(null)}>Cancelar</Button>
-                    <Button size="sm" onClick={() => submitPay(inst.id)} disabled={!payForm.account_id || !payForm.amount}>
+                    <Button size="sm" onClick={() => submitPay(inst.id)} disabled={!payForm.account_id || !payForm.amount} isLoading={payMut.isPending}>
                       Confirmar pagamento
                     </Button>
                   </div>
@@ -185,9 +266,10 @@ export function InstallmentsPanel() {
           )
         })}
         {items.length === 0 && (
-          <p className="py-6 text-center text-sm text-slate-500">
-            {mode === "receivables" ? "Nenhuma conta a receber." : "Nenhuma conta a pagar."}
-          </p>
+          <EmptyState
+            title={mode === "receivables" ? "Nenhuma conta a receber" : "Nenhuma conta a pagar"}
+            description="Crie parcelas para acompanhar vencimento, status e pagamentos."
+          />
         )}
       </div>
     </Card>

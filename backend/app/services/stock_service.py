@@ -11,7 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models.product import Product
 from app.models.stock import StockBalance, StockMovement, StockMovementType, Warehouse
-from app.schemas.stock import StockMovementCreate
+from app.schemas.stock import StockMovementCreate, WarehouseUpdate
 from app.services.audit_service import AuditService
 
 
@@ -65,6 +65,36 @@ class StockService:
         await self.db.commit()
         await self.db.refresh(movement)
         return movement
+
+    async def update_warehouse(
+        self,
+        company_id: UUID,
+        warehouse_id: UUID,
+        user_id: UUID,
+        payload: WarehouseUpdate,
+        ip_address: str | None,
+    ) -> Warehouse:
+        warehouse = await self._get_warehouse(company_id, warehouse_id)
+        update_data = payload.model_dump(exclude_unset=True)
+        previous = {
+            "name": warehouse.name,
+            "location": warehouse.location,
+        }
+        for field, value in update_data.items():
+            setattr(warehouse, field, value)
+        self.audit.log(
+            company_id=company_id,
+            user_id=user_id,
+            action="stock.warehouse.updated",
+            table_name="warehouses",
+            record_id=str(warehouse.id),
+            old_data=previous,
+            new_data=payload.model_dump(exclude_unset=True, mode="json"),
+            ip_address=ip_address,
+        )
+        await self.db.commit()
+        await self.db.refresh(warehouse)
+        return warehouse
 
     async def record_system_movement(
         self,

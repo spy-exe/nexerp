@@ -16,8 +16,14 @@ class PurchaseItemCreate(BaseModel):
 class PurchaseCreate(BaseModel):
     supplier_id: str
     warehouse_id: str | None = None
+    create_financial_transaction: bool = False
     notes: str | None = Field(default=None, max_length=500)
     items: list[PurchaseItemCreate] = Field(min_length=1)
+
+
+class PurchaseUpdate(BaseModel):
+    status: str | None = Field(default=None, pattern="^(draft|confirmed|received|cancelled)$")
+    notes: str | None = Field(default=None, max_length=500)
 
 
 class PurchaseItemResponse(BaseModel):

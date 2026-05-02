@@ -1,134 +1,405 @@
 import Link from "next/link"
 import {
   ArrowRight,
-  BadgeCheck,
-  Banknote,
-  Barcode,
+  BarChart3,
+  CheckCircle2,
+  ChevronRight,
   FileText,
-  Gauge,
-  LockKeyhole,
-  PackageSearch,
-  ShieldCheck
+  Package,
+  ReceiptText,
+  ShieldCheck,
+  Star,
+  TrendingUp,
+  Users,
+  Wallet,
+  Zap
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 
-const modules = [
-  { title: "Comercial", description: "Clientes, fornecedores, vendas, compras e PDV.", icon: BadgeCheck },
-  { title: "Financeiro", description: "Contas, fluxo de caixa, transações e exportações.", icon: Banknote },
-  { title: "Fiscal", description: "NF-e modelo 55 em homologação com trilha auditável.", icon: FileText },
-  { title: "Estoque", description: "Saldos, movimentações, SKU e código de barras.", icon: PackageSearch }
+const features = [
+  {
+    icon: ReceiptText,
+    title: "Vendas",
+    description: "PDV, orçamentos, pedidos e histórico completo de vendas por cliente.",
+    color: "#00ff88"
+  },
+  {
+    icon: Package,
+    title: "Estoque",
+    description: "Saldos em tempo real, SKU, código de barras e alertas de estoque mínimo.",
+    color: "#00d4ff"
+  },
+  {
+    icon: Wallet,
+    title: "Financeiro",
+    description: "Contas a pagar, contas a receber, fluxo de caixa e conciliação bancária.",
+    color: "#ffd700"
+  },
+  {
+    icon: FileText,
+    title: "NF-e",
+    description: "Emissão de nota fiscal eletrônica modelo 55 em homologação, trilha auditável.",
+    color: "#00ff88"
+  },
+  {
+    icon: BarChart3,
+    title: "Relatórios",
+    description: "Análise de vendas, ranking de produtos, margem e desempenho financeiro.",
+    color: "#00d4ff"
+  },
+  {
+    icon: Users,
+    title: "Multi-usuário",
+    description: "Perfis com permissões granulares por módulo, auditoria de cada ação.",
+    color: "#ffd700"
+  }
 ]
 
-const guarantees = [
-  "Setup local com Docker Compose",
-  "Multi-tenant com company_id e RLS",
-  "JWT curto com refresh token rotativo",
-  "Rate limit, headers de segurança e auditoria"
+const steps = [
+  {
+    number: "01",
+    title: "Crie sua conta",
+    description: "Cadastro em menos de 2 minutos. Sem cartão de crédito, sem burocracia."
+  },
+  {
+    number: "02",
+    title: "Configure sua empresa",
+    description: "Informe CNPJ, regime tributário e dados fiscais. O onboarding guia cada passo."
+  },
+  {
+    number: "03",
+    title: "Comece a operar",
+    description: "Cadastre produtos, abra vendas no PDV e acompanhe o financeiro em tempo real."
+  }
+]
+
+const betaFeatures = [
+  "Vendas, PDV e compras",
+  "Gestão de estoque e produtos",
+  "Financeiro e fluxo de caixa",
+  "NF-e em homologação",
+  "Relatórios avançados",
+  "Permissões multi-usuário",
+  "Auditoria completa",
+  "API FastAPI aberta"
+]
+
+const testimonials = [
+  {
+    name: "Mariana Costa",
+    role: "Sócia-fundadora, Ateliê Viva",
+    content:
+      "Finalmente um ERP que não parece uma planilha dos anos 90. O PDV com leitor de barras revolucionou nosso caixa. Controle de estoque que antes levava horas agora é automático."
+  },
+  {
+    name: "Rafael Mendes",
+    role: "Diretor financeiro, Distribuidora Alfa",
+    content:
+      "Migramos em um fim de semana. O financeiro integrado com as vendas fechou uma lacuna enorme — nada de planilha separada para conciliar. Recomendo sem hesitar."
+  },
+  {
+    name: "Tatiana Rocha",
+    role: "Gerente de TI, Grupo Serra Verde",
+    content:
+      "Implementamos para três unidades. As permissões granulares e a trilha de auditoria nos deram a governança que precisávamos sem o custo de um ERP enterprise."
+  }
 ]
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f3efe3] text-slate-950">
-      <section className="relative px-6 py-8 md:px-12">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(20,184,166,0.24),transparent_28%),radial-gradient(circle_at_86%_16%,rgba(245,158,11,0.24),transparent_24%),linear-gradient(135deg,#f9f5ea_0%,#eef7f4_48%,#fffaf0_100%)]" />
-        <div className="relative mx-auto max-w-7xl">
-          <nav className="flex items-center justify-between rounded-full border border-white/70 bg-white/60 px-5 py-3 shadow-soft backdrop-blur">
-            <div>
-              <p className="font-mono text-xs uppercase tracking-[0.35em] text-teal-700">NexERP</p>
-              <p className="text-xs text-slate-500">Open source para PMEs brasileiras</p>
+    <main className="min-h-screen overflow-hidden bg-[#0a0a0a] text-[#f0f0f0]">
+      {/* ── Nav ── */}
+      <nav className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#00ff88]">
+              <Zap className="h-4 w-4 text-[#0a0a0a]" />
             </div>
-            <div className="flex gap-3">
-              <Link href="/login">
-                <Button variant="outline">Entrar</Button>
-              </Link>
-              <Link href="/register">
-                <Button>Começar</Button>
-              </Link>
-            </div>
-          </nav>
+            <span className="font-display text-lg font-semibold tracking-tight">NexERP</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/login">
+              <Button variant="ghost" size="sm">
+                Entrar
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button size="sm">
+                Começar grátis
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </nav>
 
-          <div className="grid gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
-            <div>
-              <div className="inline-flex rounded-full border border-teal-200 bg-white/70 px-4 py-2 text-sm font-medium text-teal-800">
-                v1.0.0 pronto para operação interna, homologação fiscal e evolução comunitária.
-              </div>
-              <h1 className="mt-7 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.05em] text-slate-950 md:text-7xl">
-                ERP brasileiro sem fricção para vender, controlar e auditar.
-              </h1>
-              <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-600">
-                NexERP une comercial, financeiro, estoque, fiscal em homologação, permissões e auditoria em uma base FastAPI + Next.js pensada para pequenas e médias empresas.
-              </p>
-              <div className="mt-9 flex flex-wrap gap-4">
-                <Link href="/register">
-                  <Button className="gap-2 px-6">
-                    Criar empresa
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/dashboard">
-                  <Button variant="outline" className="px-6">Ver dashboard</Button>
-                </Link>
-              </div>
-            </div>
+      {/* ── Hero ── */}
+      <section className="relative flex min-h-screen flex-col items-center justify-center px-6 pt-24 pb-20 text-center">
+        {/* Radial glow background */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="h-[600px] w-[600px] rounded-full bg-[#00ff88]/[0.04] blur-3xl" />
+        </div>
+        <div className="pointer-events-none absolute top-1/3 left-1/4 h-[300px] w-[300px] rounded-full bg-[#00d4ff]/[0.04] blur-3xl" />
 
-            <Card className="relative overflow-hidden border-0 bg-slate-950 p-4 text-white shadow-2xl">
-              <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-teal-400/20 blur-3xl" />
-              <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-mono text-xs uppercase tracking-[0.3em] text-cyan-200">Painel operacional</p>
-                    <h2 className="mt-3 text-2xl font-semibold">R$ 184.920,00</h2>
-                    <p className="text-sm text-slate-400">Receita consolidada do mês</p>
-                  </div>
-                  <div className="rounded-2xl bg-emerald-400/15 p-3 text-emerald-300">
-                    <Gauge className="h-6 w-6" />
-                  </div>
-                </div>
-                <div className="mt-6 grid gap-3 md:grid-cols-2">
-                  {modules.map(({ title, description, icon: Icon }) => (
-                    <div key={title} className="rounded-[22px] border border-white/10 bg-white/[0.06] p-4">
-                      <Icon className="h-5 w-5 text-cyan-200" />
-                      <p className="mt-4 font-semibold">{title}</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 rounded-[22px] border border-amber-200/20 bg-amber-300/10 p-4">
-                  <div className="flex items-center gap-3">
-                    <Barcode className="h-5 w-5 text-amber-200" />
-                    <p className="font-semibold text-amber-50">PDV com leitor USB</p>
-                  </div>
-                  <p className="mt-2 text-sm text-amber-100/80">Bipe código de barras, baixa estoque e feche venda no mesmo fluxo.</p>
-                </div>
-              </div>
-            </Card>
+        <div className="relative mx-auto max-w-4xl">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#00ff88]/20 bg-[#00ff88]/5 px-4 py-2 text-sm text-[#00ff88]">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff88] opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#00ff88]" />
+            </span>
+            Beta aberta — acesso 100% gratuito
+          </div>
+
+          <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight text-[#f0f0f0] md:text-7xl">
+            O ERP que sua
+            <br />
+            <span className="text-[#00ff88]">empresa merece.</span>
+          </h1>
+
+          <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-[#888888]">
+            Gratuito. Completo. Sem complicação.
+            <br />
+            Vendas, estoque, financeiro, NF-e e auditoria numa plataforma
+            construída para PMEs brasileiras.
+          </p>
+
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <Link href="/register">
+              <Button className="h-11 px-6 text-base">
+                Começar agora
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button variant="outline" className="h-11 px-6 text-base">
+                Ver demonstração
+              </Button>
+            </Link>
+          </div>
+
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-[#888888]">
+            {["Sem cartão de crédito", "Setup em minutos", "Open source"].map((item) => (
+              <span key={item} className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-[#00ff88]" />
+                {item}
+              </span>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="px-6 pb-20 md:px-12">
-        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-          <Card className="bg-white/75 p-8">
-            <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-teal-50 text-teal-700">
-              <ShieldCheck className="h-6 w-6" />
-            </div>
-            <h2 className="mt-6 text-3xl font-semibold tracking-[-0.03em] text-slate-950">Base segura antes do primeiro cliente.</h2>
-            <p className="mt-4 text-sm leading-7 text-slate-600">
-              Autenticação, auditoria, rate limiting, CORS controlado e permissões por módulo fazem parte do produto, não de uma fase posterior.
+      {/* ── Features ── */}
+      <section className="px-6 py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-16 text-center">
+            <p className="mb-3 text-sm font-medium uppercase tracking-widest text-[#00ff88]">
+              Módulos
             </p>
-          </Card>
-          <div className="grid gap-4 md:grid-cols-2">
-            {guarantees.map((item) => (
-              <div key={item} className="rounded-[28px] border border-white/80 bg-white/70 p-5 shadow-soft">
-                <LockKeyhole className="h-5 w-5 text-teal-700" />
-                <p className="mt-4 font-medium text-slate-900">{item}</p>
+            <h2 className="font-display text-4xl font-bold tracking-tight text-[#f0f0f0] md:text-5xl">
+              Tudo que sua empresa precisa
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-[#888888]">
+              Cada módulo integrado e pensado para o fluxo real de uma PME brasileira.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map(({ icon: Icon, title, description, color }) => (
+              <div
+                key={title}
+                className="group relative overflow-hidden rounded-xl border border-white/[0.06] bg-[#111111] p-6 transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.03]"
+              >
+                <div
+                  className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg"
+                  style={{ background: `${color}15`, color }}
+                >
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-display text-lg font-semibold text-[#f0f0f0]">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[#888888]">{description}</p>
+                <ChevronRight
+                  className="absolute right-4 top-4 h-4 w-4 text-[#333333] transition-colors group-hover:text-[#00ff88]"
+                />
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ── Como funciona ── */}
+      <section className="px-6 py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-16 text-center">
+            <p className="mb-3 text-sm font-medium uppercase tracking-widest text-[#00d4ff]">
+              Como funciona
+            </p>
+            <h2 className="font-display text-4xl font-bold tracking-tight text-[#f0f0f0] md:text-5xl">
+              3 passos para começar
+            </h2>
+          </div>
+
+          <div className="relative grid gap-8 lg:grid-cols-3">
+            {/* connector line */}
+            <div className="absolute top-8 left-0 right-0 hidden h-px bg-gradient-to-r from-transparent via-white/10 to-transparent lg:block" />
+
+            {steps.map(({ number, title, description }) => (
+              <div key={number} className="relative text-center">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-[#00ff88]/20 bg-[#00ff88]/5">
+                  <span className="font-display text-xl font-bold text-[#00ff88]">{number}</span>
+                </div>
+                <h3 className="font-display text-xl font-semibold text-[#f0f0f0]">{title}</h3>
+                <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#888888]">{description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Beta Plan ── */}
+      <section className="px-6 py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="relative overflow-hidden rounded-2xl border border-[#00ff88]/20 bg-[#111111] p-10 md:p-16">
+            {/* glow */}
+            <div className="pointer-events-none absolute -top-32 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[#00ff88]/10 blur-3xl" />
+
+            <div className="relative grid gap-12 lg:grid-cols-2 lg:items-center">
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#00ff88]/20 bg-[#00ff88]/10 px-3 py-1 text-sm font-medium text-[#00ff88]">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  Sem cartão de crédito
+                </span>
+                <h2 className="font-display mt-6 text-4xl font-bold tracking-tight text-[#f0f0f0]">
+                  Gratuito durante o beta
+                </h2>
+                <p className="mt-4 text-[#888888]">
+                  Acesso completo a todos os módulos enquanto estamos no beta. Sem limite de usuários, sem surpresas.
+                </p>
+                <Link href="/register" className="mt-8 inline-block">
+                  <Button className="h-11 px-8 text-base">
+                    Criar conta grátis
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="space-y-3">
+                {betaFeatures.map((f) => (
+                  <div key={f} className="flex items-center gap-3 text-sm text-[#d0d0d0]">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-[#00ff88]" />
+                    {f}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Testimonials ── */}
+      <section className="px-6 py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-16 text-center">
+            <p className="mb-3 text-sm font-medium uppercase tracking-widest text-[#00d4ff]">
+              Depoimentos
+            </p>
+            <h2 className="font-display text-4xl font-bold tracking-tight text-[#f0f0f0] md:text-5xl">
+              Quem já usa o NexERP
+            </h2>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {testimonials.map(({ name, role, content }) => (
+              <div
+                key={name}
+                className="flex flex-col justify-between rounded-xl border border-white/[0.06] bg-[#111111] p-6"
+              >
+                <div>
+                  <div className="mb-4 flex gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-[#ffd700] text-[#ffd700]" />
+                    ))}
+                  </div>
+                  <p className="text-sm leading-7 text-[#cccccc]">{`"${content}"`}</p>
+                </div>
+                <div className="mt-6 border-t border-white/[0.06] pt-4">
+                  <p className="font-semibold text-[#f0f0f0]">{name}</p>
+                  <p className="mt-0.5 text-xs text-[#888888]">{role}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="border-t border-white/[0.06] px-6 py-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-10 md:grid-cols-[2fr_1fr_1fr_1fr]">
+            <div>
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#00ff88]">
+                  <Zap className="h-4 w-4 text-[#0a0a0a]" />
+                </div>
+                <span className="font-display text-lg font-semibold">NexERP</span>
+              </div>
+              <p className="max-w-xs text-sm leading-6 text-[#888888]">
+                ERP gratuito e open source para pequenas e médias empresas brasileiras.
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#555555]">Produto</p>
+              <ul className="space-y-3 text-sm text-[#888888]">
+                {["Vendas", "Estoque", "Financeiro", "NF-e", "Relatórios"].map((item) => (
+                  <li key={item}>
+                    <Link href="/login" className="transition-colors hover:text-[#00d4ff]">
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#555555]">Empresa</p>
+              <ul className="space-y-3 text-sm text-[#888888]">
+                {["Sobre", "Blog", "Contato"].map((item) => (
+                  <li key={item}>
+                    <Link href="/" className="transition-colors hover:text-[#00d4ff]">
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#555555]">Acesso</p>
+              <ul className="space-y-3 text-sm text-[#888888]">
+                <li>
+                  <Link href="/login" className="transition-colors hover:text-[#00d4ff]">
+                    Entrar
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/register" className="transition-colors hover:text-[#00d4ff]">
+                    Criar conta
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/[0.06] pt-8 text-sm text-[#555555] sm:flex-row">
+            <p>© {new Date().getFullYear()} NexERP. Open source sob licença MIT.</p>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-[#00ff88]" />
+              <span>Seus dados são seus.</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </main>
   )
 }

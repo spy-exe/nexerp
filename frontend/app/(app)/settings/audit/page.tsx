@@ -28,7 +28,7 @@ export default function AuditPage() {
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Auditoria</p>
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Auditoria</p>
         <h1 className="mt-3 text-3xl font-semibold text-slate-900">Log de ações críticas</h1>
         <div className="mt-6 grid gap-4 md:grid-cols-[1fr_1fr_auto]">
           <div>
@@ -51,7 +51,7 @@ export default function AuditPage() {
       <Card className="p-6">
         <div className="space-y-3">
           {auditQuery.data?.map((log) => (
-            <div key={log.id} className="rounded-[24px] border border-line bg-white p-4">
+            <div key={log.id} className="rounded-2xl border border-slate-200 bg-white p-4">
               <div className="flex flex-wrap justify-between gap-3">
                 <div>
                   <p className="font-semibold text-slate-900">{log.action}</p>

@@ -7,11 +7,18 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { InlineEdit } from "@/components/shared/InlineEdit"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/toast"
 import type { BusinessParty } from "@/lib/auth"
 import { businessPartySchema } from "@/lib/validations"
 
@@ -92,7 +99,10 @@ export function PartyManager({
   archiveMutation
 }: PartyManagerProps) {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [editingParty, setEditingParty] = useState<BusinessParty | null>(null)
+  const [pendingArchive, setPendingArchive] = useState<BusinessParty | null>(null)
+  const [inlineError, setInlineError] = useState<string | null>(null)
   const partiesQuery = useQuery({ queryKey: [queryKey], queryFn: listQuery })
   const {
     register,
@@ -113,24 +123,39 @@ export function PartyManager({
       }
       return createMutation(payload)
     },
-    onSuccess: async () => {
+    onSuccess: (savedParty) => {
       setEditingParty(null)
       reset(defaultValues)
-      await queryClient.invalidateQueries({ queryKey: [queryKey] })
+      queryClient.setQueryData<BusinessParty[]>([queryKey], (current = []) => {
+        const exists = current.some((party) => party.id === savedParty.id)
+        if (exists) {
+          return current.map((party) => (party.id === savedParty.id ? savedParty : party))
+        }
+        return [savedParty, ...current]
+      })
+      toast({ title: editingParty ? "Cadastro atualizado" : "Cadastro criado", variant: "success" })
     },
     onError: (error) => {
       setError("root", { message: error instanceof Error ? error.message : "Falha ao salvar cadastro." })
+      toast({ title: "Erro ao salvar cadastro", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
   const archivePartyMutation = useMutation({
     mutationFn: archiveMutation,
-    onSuccess: async () => {
+    onSuccess: (archivedParty) => {
       if (editingParty) {
         setEditingParty(null)
         reset(defaultValues)
       }
-      await queryClient.invalidateQueries({ queryKey: [queryKey] })
+      setPendingArchive(null)
+      queryClient.setQueryData<BusinessParty[]>([queryKey], (current = []) =>
+        current.map((party) => (party.id === archivedParty.id ? archivedParty : party))
+      )
+      toast({ title: "Cadastro arquivado", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao arquivar cadastro", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -148,16 +173,119 @@ export function PartyManager({
     reset(defaultValues)
   }
 
+  async function savePartyField(party: BusinessParty, payload: Partial<BusinessParty>) {
+    setInlineError(null)
+    const previous = queryClient.getQueryData<BusinessParty[]>([queryKey])
+    queryClient.setQueryData<BusinessParty[]>([queryKey], (current = []) =>
+      current.map((item) => (item.id === party.id ? { ...item, ...payload } : item))
+    )
+    try {
+      const updated = await updateMutation(party.id, payload)
+      queryClient.setQueryData<BusinessParty[]>([queryKey], (current = []) =>
+        current.map((item) => (item.id === party.id ? updated : item))
+      )
+      toast({ title: "Cadastro atualizado", variant: "success" })
+    } catch (error) {
+      queryClient.setQueryData([queryKey], previous)
+      setInlineError(error instanceof Error ? error.message : "Falha ao atualizar cadastro.")
+      toast({ title: "Erro ao atualizar cadastro", description: error instanceof Error ? error.message : undefined, variant: "error" })
+      throw error
+    }
+  }
+
+  const columns: Array<DataTableColumn<BusinessParty>> = [
+    {
+      key: "name",
+      label: title,
+      render: (party) => {
+        const Icon = party.person_kind === "company" ? Building2 : UserRound
+        return (
+          <div className="flex items-start gap-3">
+            <div className="rounded-2xl bg-slate-100 p-2 text-slate-600">
+              <Icon className="h-4 w-4" />
+            </div>
+            <div>
+              <InlineEdit value={party.name} onSave={(value) => savePartyField(party, { name: value })} />
+              <p className="mt-1 text-xs text-slate-500">{party.document_number}</p>
+            </div>
+          </div>
+        )
+      }
+    },
+    {
+      key: "email",
+      label: "E-mail",
+      render: (party) => (
+        <InlineEdit
+          value={party.email ?? ""}
+          displayValue={party.email || "sem e-mail"}
+          onSave={(value) => savePartyField(party, { email: value || null })}
+        />
+      )
+    },
+    {
+      key: "address_city",
+      label: "Cidade",
+      render: (party) => (
+        <InlineEdit
+          value={party.address_city ?? ""}
+          displayValue={`${party.address_city || "Cidade não informada"}${party.address_state ? ` / ${party.address_state}` : ""}`}
+          onSave={(value) => savePartyField(party, { address_city: value || null })}
+        />
+      )
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (party) => (
+        <InlineEdit
+          type="select"
+          value={party.is_active ? "active" : "archived"}
+          displayValue={<StatusBadge status={party.is_active ? "active" : "archived"} />}
+          options={[
+            { value: "active", label: "Ativo" },
+            { value: "archived", label: "Arquivado" }
+          ]}
+          onSave={(value) => savePartyField(party, { is_active: value === "active" })}
+        />
+      )
+    },
+    {
+      key: "actions",
+      label: "Ações",
+      render: (party) => (
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" size="icon" onClick={() => handleEdit(party)}>
+            <PencilLine className="h-4 w-4" />
+          </Button>
+          {party.is_active && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={() => setPendingArchive(party)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      )
+    }
+  ]
+
   return (
-    <div className="grid gap-6 xl:grid-cols-[460px_1fr]">
+    <div className="space-y-6">
+      <PageHeader eyebrow={subtitle} title={listTitle} subtitle="Cadastros editáveis com ações inline, alteração de status e confirmação para arquivamento." />
+      <div className="grid gap-6 xl:grid-cols-[460px_1fr]">
       <Card className="p-6">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">{subtitle}</p>
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">{subtitle}</p>
         <h1 className="mt-3 text-2xl font-semibold">{editingParty ? `Editar ${title.toLowerCase()}` : `Novo ${title.toLowerCase()}`}</h1>
         <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Tipo de pessoa</Label>
-              <select className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm" {...register("person_kind")}>
+              <select className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" {...register("person_kind")}>
                 <option value="company">Pessoa jurídica</option>
                 <option value="individual">Pessoa física</option>
               </select>
@@ -225,7 +353,7 @@ export function PartyManager({
           </div>
           {errors.root && <p className="text-sm text-rose-600">{errors.root.message}</p>}
           <div className="flex gap-3">
-            <Button className="flex-1" disabled={isSubmitting || saveMutation.isPending} type="submit">
+            <Button className="flex-1" disabled={isSubmitting} isLoading={saveMutation.isPending} type="submit">
               {saveMutation.isPending ? "Salvando..." : editingParty ? "Atualizar cadastro" : "Criar cadastro"}
             </Button>
             {editingParty && (
@@ -238,57 +366,30 @@ export function PartyManager({
       </Card>
       <Card className="p-6">
         <h2 className="text-xl font-semibold text-slate-900">{listTitle}</h2>
-        <div className="mt-5 grid gap-3">
-          {partiesQuery.data?.map((party) => {
-            const Icon = party.person_kind === "company" ? Building2 : UserRound
-            return (
-              <div key={party.id} className="rounded-[24px] border border-line bg-white p-5">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-2xl bg-slate-100 p-3 text-slate-600">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-900">{party.name}</p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {party.document_number} {party.email ? `• ${party.email}` : ""}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {party.address_city || "Cidade não informada"} {party.address_state ? `• ${party.address_state}` : ""}
-                      </p>
-                    </div>
-                  </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      party.is_active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {party.is_active ? "Ativo" : "Arquivado"}
-                  </span>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <Button type="button" variant="outline" className="gap-2" onClick={() => handleEdit(party)}>
-                    <PencilLine className="h-4 w-4" />
-                    Editar
-                  </Button>
-                  {party.is_active && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="gap-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-                      onClick={() => archivePartyMutation.mutate(party.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Arquivar
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-          {!partiesQuery.data?.length && <p className="text-sm text-slate-500">Nenhum cadastro encontrado.</p>}
+        {inlineError && <p className="mt-3 text-sm text-rose-600">{inlineError}</p>}
+        <div className="mt-5">
+          <DataTable
+            columns={columns}
+            rows={partiesQuery.data ?? []}
+            getRowKey={(party) => party.id}
+            emptyState={<EmptyState title="Nenhum cadastro encontrado" description={`Crie o primeiro ${title.toLowerCase()} para começar a operar.`} />}
+          />
         </div>
       </Card>
+      </div>
+      <ConfirmDialog
+        open={Boolean(pendingArchive)}
+        title="Arquivar cadastro"
+        description={`Arquivar ${pendingArchive?.name ?? "cadastro"}?`}
+        confirmLabel="Arquivar"
+        isConfirming={archivePartyMutation.isPending}
+        onClose={() => setPendingArchive(null)}
+        onConfirm={() => {
+          if (pendingArchive) {
+            archivePartyMutation.mutate(pendingArchive.id)
+          }
+        }}
+      />
     </div>
   )
 }

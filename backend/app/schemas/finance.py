@@ -132,6 +132,7 @@ class InstallmentPayment(BaseModel):
 
 class InstallmentUpdate(BaseModel):
     description: str | None = Field(None, min_length=2, max_length=500)
+    total_amount: Decimal | None = Field(None, gt=Decimal("0.00"))
     due_date: date | None = None
     notes: str | None = None
     status: InstallmentStatus | None = None

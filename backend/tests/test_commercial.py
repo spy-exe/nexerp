@@ -51,6 +51,14 @@ async def test_sales_purchases_and_dashboard_flow(client) -> None:
     assert supplier_response.status_code == 201, supplier_response.text
     supplier = supplier_response.json()
 
+    account_response = await client.post(
+        "/api/v1/finance/accounts",
+        json={"name": "Caixa Operacional", "type": "cash", "balance": "1000.00"},
+        headers=headers,
+    )
+    assert account_response.status_code == 201, account_response.text
+    account = account_response.json()
+
     stock_response = await client.post(
         "/api/v1/stock/movements",
         json={
@@ -85,6 +93,19 @@ async def test_sales_purchases_and_dashboard_flow(client) -> None:
     assert sale["total_amount"] == "150.00"
     assert sale["items"][0]["quantity"] == "2"
 
+    sale_transactions_response = await client.get("/api/v1/finance/transactions?type=income", headers=headers)
+    assert sale_transactions_response.status_code == 200, sale_transactions_response.text
+    sale_transactions = sale_transactions_response.json()
+    assert len(sale_transactions) == 1
+    assert sale_transactions[0]["amount"] == "150.00"
+    assert sale_transactions[0]["account_name"] == "Caixa Operacional"
+    assert sale_transactions[0]["person_name"] == "Obras Horizonte"
+    assert sale_transactions[0]["description"].startswith("Venda ")
+
+    account_after_sale = await client.get(f"/api/v1/finance/accounts/{account['id']}", headers=headers)
+    assert account_after_sale.status_code == 200
+    assert account_after_sale.json()["balance"] == "1150.00"
+
     balances_after_sale = await client.get("/api/v1/stock/balances", headers=headers)
     assert balances_after_sale.status_code == 200
     assert balances_after_sale.json()[0]["quantity"] == "18.000"
@@ -93,6 +114,7 @@ async def test_sales_purchases_and_dashboard_flow(client) -> None:
         "/api/v1/purchases",
         json={
             "supplier_id": supplier["id"],
+            "create_financial_transaction": True,
             "items": [
                 {
                     "product_id": product["id"],
@@ -106,6 +128,19 @@ async def test_sales_purchases_and_dashboard_flow(client) -> None:
     assert purchase_response.status_code == 201, purchase_response.text
     purchase = purchase_response.json()
     assert purchase["total_amount"] == "80.00"
+
+    purchase_transactions_response = await client.get("/api/v1/finance/transactions?type=expense", headers=headers)
+    assert purchase_transactions_response.status_code == 200, purchase_transactions_response.text
+    purchase_transactions = purchase_transactions_response.json()
+    assert len(purchase_transactions) == 1
+    assert purchase_transactions[0]["amount"] == "80.00"
+    assert purchase_transactions[0]["account_name"] == "Caixa Operacional"
+    assert purchase_transactions[0]["person_name"] == "Cimento Brasil"
+    assert purchase_transactions[0]["description"].startswith("Compra ")
+
+    account_after_purchase = await client.get(f"/api/v1/finance/accounts/{account['id']}", headers=headers)
+    assert account_after_purchase.status_code == 200
+    assert account_after_purchase.json()["balance"] == "1070.00"
 
     balances_after_purchase = await client.get("/api/v1/stock/balances", headers=headers)
     assert balances_after_purchase.status_code == 200

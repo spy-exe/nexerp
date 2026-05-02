@@ -4,10 +4,13 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Landmark, Plus, Pencil } from "lucide-react"
 
+import { EmptyState } from "@/components/shared/EmptyState"
+import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import {
   createFinancialAccount,
   listFinancialAccounts,
@@ -24,6 +27,7 @@ const ACCOUNT_TYPE_LABEL: Record<string, string> = {
 
 export function AccountsPanel() {
   const qc = useQueryClient()
+  const { toast } = useToast()
   const { data: accounts = [] } = useQuery({
     queryKey: ["finance-accounts"],
     queryFn: listFinancialAccounts,
@@ -35,11 +39,29 @@ export function AccountsPanel() {
 
   const createMut = useMutation({
     mutationFn: createFinancialAccount,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["finance-accounts"] }); setShowForm(false); resetForm() },
+    onSuccess: (account) => {
+      qc.setQueryData<FinancialAccount[]>(["finance-accounts"], (current = []) => [account, ...current])
+      setShowForm(false)
+      resetForm()
+      toast({ title: "Conta criada", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao salvar conta", description: error instanceof Error ? error.message : undefined, variant: "error" })
+    },
   })
   const updateMut = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: unknown }) => updateFinancialAccount(id, payload),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["finance-accounts"] }); setEditing(null); resetForm() },
+    onSuccess: (account) => {
+      qc.setQueryData<FinancialAccount[]>(["finance-accounts"], (current = []) =>
+        current.map((item) => (item.id === account.id ? account : item))
+      )
+      setEditing(null)
+      resetForm()
+      toast({ title: "Conta atualizada", variant: "success" })
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao atualizar conta", description: error instanceof Error ? error.message : undefined, variant: "error" })
+    },
   })
 
   function resetForm() {
@@ -80,7 +102,7 @@ export function AccountsPanel() {
           <div>
             <Label>Tipo</Label>
             <select
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+              className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
               value={form.type}
               onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
             >
@@ -101,7 +123,7 @@ export function AccountsPanel() {
           </div>
           <div className="sm:col-span-2 flex gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setEditing(null); resetForm() }}>Cancelar</Button>
-            <Button size="sm" onClick={submit} disabled={!form.name}>
+            <Button size="sm" onClick={submit} disabled={!form.name} isLoading={createMut.isPending || updateMut.isPending}>
               {editing ? "Salvar" : "Criar conta"}
             </Button>
           </div>
@@ -114,6 +136,9 @@ export function AccountsPanel() {
             <div>
               <p className="font-medium text-slate-900">{acc.name}</p>
               <p className="text-xs text-slate-500">{ACCOUNT_TYPE_LABEL[acc.type] ?? acc.type}{acc.bank_name ? ` · ${acc.bank_name}` : ""}</p>
+              <div className="mt-2">
+                <StatusBadge status={acc.is_active ? "active" : "archived"} />
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <p className={`text-lg font-semibold ${Number(acc.balance) >= 0 ? "text-emerald-700" : "text-red-700"}`}>
@@ -126,7 +151,9 @@ export function AccountsPanel() {
           </div>
         ))}
         {accounts.length === 0 && (
-          <p className="text-sm text-slate-500 col-span-2">Nenhuma conta cadastrada.</p>
+          <div className="col-span-2">
+            <EmptyState title="Nenhuma conta cadastrada" description="Crie uma conta caixa, banco ou digital para registrar transações." />
+          </div>
         )}
       </div>
     </Card>

@@ -10,16 +10,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
+from app.models.finance import FinancialAccount, FinancialTransaction, TransactionType
 from app.models.party import BusinessParty, PartyKind
 from app.models.product import Product
 from app.models.sale import Sale, SaleItem, SalePayment
 from app.models.stock import Warehouse
-from app.schemas.sale import SaleCreate
+from app.schemas.sale import SaleCreate, SaleUpdate
 from app.services.audit_service import AuditService
 from app.services.stock_service import StockService
 
 
 MONEY_PRECISION = Decimal("0.01")
+EDITABLE_STATUSES = {"draft", "confirmed"}
 
 
 class SaleService:
@@ -148,6 +150,34 @@ class SaleService:
                 ip_address=ip_address,
             )
 
+        # Auto-create income transaction on the first active financial account
+        account_res = await self.db.execute(
+            select(FinancialAccount)
+            .where(
+                FinancialAccount.company_id == company_id,
+                FinancialAccount.is_active.is_(True),
+                FinancialAccount.deleted_at.is_(None),
+            )
+            .order_by(FinancialAccount.created_at.asc())
+            .limit(1)
+        )
+        fin_account = account_res.scalar_one_or_none()
+        if fin_account is not None:
+            income_txn = FinancialTransaction(
+                company_id=company_id,
+                account_id=fin_account.id,
+                person_id=customer.id if customer else None,
+                type=TransactionType.income.value,
+                amount=total_amount,
+                date=datetime.now(UTC).date(),
+                description=f"Venda {sale.sale_number}",
+                reference_id=sale.id,
+                reference_type="sale",
+                reconciled=True,
+            )
+            self.db.add(income_txn)
+            fin_account.balance = self._money(fin_account.balance + total_amount)
+
         self.audit.log(
             company_id=company_id,
             user_id=user_id,
@@ -166,6 +196,45 @@ class SaleService:
                 "payments": [payment.model_dump(mode="json") for payment in payload.payments],
                 "channel": payload.channel,
             },
+            ip_address=ip_address,
+        )
+        await self.db.commit()
+        return await self.get(company_id, sale.id)
+
+    async def update(
+        self,
+        company_id: UUID,
+        sale_id: UUID,
+        user_id: UUID,
+        payload: SaleUpdate,
+        ip_address: str | None,
+    ) -> Sale:
+        sale = await self.get(company_id, sale_id)
+        update_data = payload.model_dump(exclude_unset=True)
+        if not update_data:
+            return sale
+
+        if "status" in update_data and update_data["status"] != sale.status:
+            if sale.status not in EDITABLE_STATUSES:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Status de venda finalizada não pode ser alterado.",
+                )
+
+        previous = {
+            "status": sale.status,
+            "notes": sale.notes,
+        }
+        for field, value in update_data.items():
+            setattr(sale, field, value)
+        self.audit.log(
+            company_id=company_id,
+            user_id=user_id,
+            action="sales.updated",
+            table_name="sales",
+            record_id=str(sale.id),
+            old_data=previous,
+            new_data=payload.model_dump(exclude_unset=True, mode="json"),
             ip_address=ip_address,
         )
         await self.db.commit()

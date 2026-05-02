@@ -38,12 +38,44 @@ class CompanyOnboardingUpdate(BaseModel):
     timezone: str | None = Field(default=None, max_length=80)
     currency: str | None = Field(default=None, min_length=3, max_length=3)
 
+    @field_validator(
+        "phone",
+        "address_zip",
+        "address_state",
+        "address_city",
+        "address_street",
+        "address_number",
+        "address_neighborhood",
+        "logo_url",
+        "tax_regime",
+        "cnae",
+        "timezone",
+        "currency",
+        mode="before",
+    )
+    @classmethod
+    def empty_string_to_none(cls, value: str | None) -> str | None:
+        if isinstance(value, str):
+            stripped = value.strip()
+            return stripped or None
+        return value
+
     @field_validator("address_zip")
     @classmethod
     def validate_zip(cls, value: str | None) -> str | None:
         if value is None:
             return value
         return validate_cep(value)
+
+    @field_validator("address_state")
+    @classmethod
+    def normalize_state(cls, value: str | None) -> str | None:
+        return value.upper() if value else value
+
+    @field_validator("currency")
+    @classmethod
+    def normalize_currency(cls, value: str | None) -> str | None:
+        return value.upper() if value else value
 
 
 class CompanyResponse(CompanyBase):

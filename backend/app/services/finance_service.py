@@ -443,8 +443,18 @@ class FinanceService:
     ) -> Installment:
         inst = await self.get_installment(company_id, installment_id)
         data = payload.model_dump(exclude_none=True)
+        if "total_amount" in data and _money(data["total_amount"]) < _money(inst.paid_amount):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Valor total não pode ser menor que o valor já pago.",
+            )
         for field, value in data.items():
+            if field == "total_amount":
+                value = _money(value)
             setattr(inst, field, value.value if hasattr(value, "value") else value)
+        _audit(self.audit, company_id=company_id, user_id=user_id,
+               action="update", table_name="installments",
+               record_id=installment_id, new_data=payload.model_dump(exclude_none=True), ip=ip)
         await self.db.commit()
         return await self.get_installment(company_id, installment_id)
 

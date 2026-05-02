@@ -193,7 +193,7 @@ class AuthService:
         if not user.is_active or user.deleted_at is not None:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuário inativo.")
 
-        user.last_login = datetime.now(tz=UTC)
+        user.last_login = datetime.now(tz=UTC).replace(tzinfo=None)
         self.audit.log(
             company_id=user.company_id,
             user_id=user.id,

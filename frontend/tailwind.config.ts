@@ -21,18 +21,23 @@ const config: Config = {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))"
         },
-        success: "hsl(var(--success))",
-        warning: "hsl(var(--warning))"
+        success: "hsl(var(--success-h))",
+        warning: "hsl(var(--warning-h))",
+        neon: "#00ff88",
+        cyan: "#00d4ff"
       },
       boxShadow: {
-        soft: "0 20px 60px rgba(15, 23, 42, 0.08)"
+        soft:        "0 20px 60px rgba(15,23,42,0.08)",
+        "glow-green":"0 0 24px rgba(0,255,136,0.25)",
+        "glow-cyan": "0 0 24px rgba(0,212,255,0.25)"
       },
       borderRadius: {
         xl2: "1.5rem"
       },
       fontFamily: {
-        sans: ["var(--font-manrope)"],
-        mono: ["var(--font-space-mono)"]
+        sans:    ["var(--font-sans)"],
+        display: ["var(--font-display)"],
+        mono:    ["var(--font-mono-stack)"]
       }
     }
   },

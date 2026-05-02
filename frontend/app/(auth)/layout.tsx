@@ -1,21 +1,63 @@
+import Link from "next/link"
+import { Zap } from "lucide-react"
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.18),_transparent_24%),linear-gradient(145deg,_#f6f1e8_0%,_#f8fbff_55%,_#eef6f3_100%)] px-6 py-8">
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl overflow-hidden rounded-[32px] border border-white/60 bg-white/75 shadow-soft backdrop-blur lg:grid-cols-[0.95fr_1.05fr]">
-        <section className="hidden bg-[#0f172a] px-10 py-12 text-white lg:flex lg:flex-col lg:justify-between">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.4em] text-cyan-200">NexERP</p>
-            <h2 className="mt-8 text-4xl font-semibold leading-tight">Foundation com foco em operação real.</h2>
-            <p className="mt-5 max-w-md text-slate-300">
-              Cadastro da empresa, autenticação segura, onboarding orientado e catálogo pronto para crescer sem gambiarra.
+    <div className="min-h-screen bg-[#0a0a0a]">
+      <div className="mx-auto grid min-h-screen max-w-[1400px] lg:grid-cols-[1fr_1fr]">
+        {/* ── Left panel ── */}
+        <section className="relative hidden overflow-hidden bg-[#0d0d0d] px-12 py-10 lg:flex lg:flex-col lg:justify-between">
+          {/* radial accent */}
+          <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-[#00ff88]/[0.06] blur-3xl" />
+          <div className="pointer-events-none absolute bottom-0 right-0 h-64 w-64 rounded-full bg-[#00d4ff]/[0.04] blur-3xl" />
+
+          <Link href="/" className="relative flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#00ff88]">
+              <Zap className="h-5 w-5 text-[#0a0a0a]" />
+            </div>
+            <span className="font-display text-xl font-semibold text-[#f0f0f0]">NexERP</span>
+          </Link>
+
+          <div className="relative">
+            <p className="text-xs font-medium uppercase tracking-widest text-[#00ff88]">
+              Para PMEs brasileiras
             </p>
+            <h2 className="font-display mt-4 text-4xl font-bold leading-tight tracking-tight text-[#f0f0f0]">
+              Gratuito.
+              <br />
+              Completo.
+              <br />
+              Sem complicação.
+            </h2>
+            <p className="mt-5 max-w-sm text-[#888888]">
+              Vendas, estoque, financeiro, NF-e e auditoria num único sistema
+              construído sobre FastAPI + Next.js.
+            </p>
+
+            <div className="mt-10 space-y-3">
+              {[
+                "PDV com leitor de código de barras",
+                "NF-e em homologação inclusa",
+                "Permissões e auditoria completas",
+                "Open source e auto-hospedável"
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3 text-sm text-[#aaaaaa]">
+                  <div className="h-1.5 w-1.5 rounded-full bg-[#00ff88]" />
+                  {item}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
-            <p className="font-mono text-xs uppercase tracking-[0.25em] text-cyan-200">Stack</p>
-            <p className="mt-3">FastAPI, SQLAlchemy, Next.js, Tailwind, React Query, Zustand e PostgreSQL.</p>
-          </div>
+
+          <p className="relative text-xs text-[#444444]">
+            © {new Date().getFullYear()} NexERP — open source MIT
+          </p>
         </section>
-        <section className="flex items-center justify-center px-6 py-10 md:px-10">{children}</section>
+
+        {/* ── Right panel ── */}
+        <section className="flex items-center justify-center px-6 py-10">
+          {children}
+        </section>
       </div>
     </div>
   )

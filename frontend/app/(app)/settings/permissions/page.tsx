@@ -62,12 +62,12 @@ export default function PermissionsPage() {
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Permissões</p>
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Permissões</p>
         <h1 className="mt-3 text-3xl font-semibold text-slate-900">Controle granular por módulo</h1>
         <p className="mt-4 text-sm leading-7 text-slate-600">
           Papéis podem receber permissões específicas sem alterar o isolamento multi-tenant. O Admin permanece imutável.
         </p>
-        {message && <p className="mt-4 text-sm text-teal-700">{message}</p>}
+        {message && <p className="mt-4 text-sm text-blue-700">{message}</p>}
       </Card>
 
       <div className="grid gap-6">
@@ -91,7 +91,7 @@ export default function PermissionsPage() {
               </div>
               <div className="mt-6 grid gap-4 lg:grid-cols-3">
                 {groupedPermissions.map(([module, permissions]) => (
-                  <div key={`${role.id}-${module}`} className="rounded-[24px] border border-line bg-white p-4">
+                  <div key={`${role.id}-${module}`} className="rounded-2xl border border-slate-200 bg-white p-4">
                     <p className="font-semibold text-slate-900">{module}</p>
                     <div className="mt-3 space-y-2">
                       {permissions?.map((permission) => (

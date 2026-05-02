@@ -5,15 +5,18 @@ import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Barcode, CreditCard, Plus, ReceiptText, ShoppingCart, Trash2, Wallet } from "lucide-react"
 
+import { InlineEdit } from "@/components/shared/InlineEdit"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/toast"
 import {
   createSale,
   listCustomers,
   listProducts,
   listSales,
+  updateSale,
   type Product,
   type SaleSummary
 } from "@/lib/auth"
@@ -47,6 +50,7 @@ const paymentLabels: Record<DraftPayment["method"], string> = {
 
 export function SalesWorkspace({ channel, title, subtitle, description }: SalesWorkspaceProps) {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const productsQuery = useQuery({ queryKey: ["products"], queryFn: listProducts })
   const customersQuery = useQuery({ queryKey: ["customers"], queryFn: listCustomers })
   const salesQuery = useQuery({ queryKey: ["sales"], queryFn: listSales })
@@ -63,6 +67,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
   const [items, setItems] = useState<DraftSaleItem[]>([])
   const [payments, setPayments] = useState<DraftPayment[]>([])
   const [formError, setFormError] = useState<string | null>(null)
+  const [inlineError, setInlineError] = useState<string | null>(null)
 
   const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0), [items])
   const discount = Number(discountAmount || 0)
@@ -72,7 +77,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
 
   const createSaleMutation = useMutation({
     mutationFn: createSale,
-    onSuccess: async () => {
+    onSuccess: async (sale) => {
       setCustomerId("")
       setNotes("")
       setDiscountAmount("0")
@@ -84,14 +89,16 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
       setItems([])
       setPayments([])
       setFormError(null)
+      queryClient.setQueryData<SaleSummary[]>(["sales"], (current = []) => [sale, ...current])
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["sales"] }),
         queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] }),
         queryClient.invalidateQueries({ queryKey: ["balances"] })
       ])
+      toast({ title: "Venda registrada", variant: "success" })
     },
     onError: (error) => {
       setFormError(error instanceof Error ? error.message : "Falha ao registrar venda.")
+      toast({ title: "Erro ao registrar venda", description: error instanceof Error ? error.message : undefined, variant: "error" })
     }
   })
 
@@ -188,17 +195,37 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
     })
   }
 
+  async function saveSaleField(sale: SaleSummary, payload: Partial<SaleSummary>) {
+    setInlineError(null)
+    const previous = queryClient.getQueryData<SaleSummary[]>(["sales"])
+    queryClient.setQueryData<SaleSummary[]>(["sales"], (current = []) =>
+      current.map((item) => (item.id === sale.id ? { ...item, ...payload } : item))
+    )
+    try {
+      const updated = await updateSale(sale.id, payload)
+      queryClient.setQueryData<SaleSummary[]>(["sales"], (current = []) =>
+        current.map((item) => (item.id === sale.id ? { ...item, ...updated } : item))
+      )
+      toast({ title: "Venda atualizada", variant: "success" })
+    } catch (error) {
+      queryClient.setQueryData(["sales"], previous)
+      setInlineError(error instanceof Error ? error.message : "Falha ao atualizar venda.")
+      toast({ title: "Erro ao atualizar venda", description: error instanceof Error ? error.message : undefined, variant: "error" })
+      throw error
+    }
+  }
+
   return (
     <div className="space-y-6">
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <Card className="p-6">
-          <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">{subtitle}</p>
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">{subtitle}</p>
           <h1 className="mt-3 text-3xl font-semibold text-slate-900">{title}</h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">{description}</p>
 
           {channel === "pos" && (
-            <form className="mt-8 rounded-[24px] border border-teal-200 bg-teal-50 p-4" onSubmit={handleBarcodeSubmit}>
-              <Label className="flex items-center gap-2 text-teal-900">
+            <form className="mt-8 rounded-2xl border border-blue-200 bg-blue-50 p-4" onSubmit={handleBarcodeSubmit}>
+              <Label className="flex items-center gap-2 text-blue-900">
                 <Barcode className="h-4 w-4" />
                 Leitor USB / código de barras
               </Label>
@@ -214,7 +241,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
                   Adicionar
                 </Button>
               </div>
-              <p className="mt-2 text-xs text-teal-800">
+              <p className="mt-2 text-xs text-blue-700">
                 Leitores USB funcionam como teclado: o Enter finaliza a leitura e adiciona 1 unidade ao carrinho.
               </p>
             </form>
@@ -224,7 +251,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             <div>
               <Label>Produto</Label>
               <select
-                className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm"
+                className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                 value={selectedProductId}
                 onChange={(event) => {
                   setSelectedProductId(event.target.value)
@@ -261,7 +288,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
           <div className="mt-8 grid gap-4 md:grid-cols-[1fr_180px_160px_auto]">
             <div>
               <Label>Cliente</Label>
-              <select className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm" value={customerId} onChange={(event) => setCustomerId(event.target.value)}>
+              <select className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" value={customerId} onChange={(event) => setCustomerId(event.target.value)}>
                 <option value="">Consumidor final</option>
                 {customersQuery.data?.map((customer) => (
                   <option key={customer.id} value={customer.id}>
@@ -273,7 +300,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             <div>
               <Label>Pagamento</Label>
               <select
-                className="h-11 w-full rounded-2xl border border-line bg-white px-4 text-sm"
+                className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                 value={selectedPaymentMethod}
                 onChange={(event) => setSelectedPaymentMethod(event.target.value as DraftPayment["method"])}
               >
@@ -310,7 +337,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Resumo</p>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Resumo</p>
               <h2 className="mt-3 text-2xl font-semibold text-slate-900">Carrinho atual</h2>
             </div>
             <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
@@ -320,7 +347,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
 
           <div className="mt-6 space-y-3">
             {items.map((item, index) => (
-              <div key={`${item.product_id}-${index}`} className="rounded-[24px] border border-line bg-white p-4">
+              <div key={`${item.product_id}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="font-semibold text-slate-900">{item.product_name}</p>
@@ -337,7 +364,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
             {!items.length && <p className="text-sm text-slate-500">Nenhum item adicionado.</p>}
           </div>
 
-          <div className="mt-6 space-y-2 rounded-[24px] bg-slate-950 p-5 text-white">
+          <div className="mt-6 space-y-2 rounded-2xl bg-slate-950 p-5 text-white">
             <div className="flex items-center justify-between text-sm text-slate-300">
               <span>Subtotal</span>
               <span>{currency(subtotal)}</span>
@@ -362,7 +389,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
 
           <div className="mt-5 space-y-2">
             {payments.map((payment, index) => (
-              <div key={`${payment.method}-${index}`} className="flex items-center justify-between rounded-2xl border border-line px-4 py-3 text-sm">
+              <div key={`${payment.method}-${index}`} className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm">
                 <span>{paymentLabels[payment.method]}</span>
                 <span className="font-semibold text-slate-900">{currency(payment.amount)}</span>
               </div>
@@ -370,7 +397,7 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
           </div>
 
           {formError && <p className="mt-4 text-sm text-rose-600">{formError}</p>}
-          <Button className="mt-6 w-full gap-2" disabled={createSaleMutation.isPending} type="button" onClick={handleSubmit}>
+          <Button className="mt-6 w-full gap-2" isLoading={createSaleMutation.isPending} type="button" onClick={handleSubmit}>
             <Wallet className="h-4 w-4" />
             {createSaleMutation.isPending ? "Finalizando..." : channel === "pos" ? "Fechar venda no PDV" : "Registrar venda"}
           </Button>
@@ -380,16 +407,17 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
       <Card className="p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Histórico</p>
+            <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Histórico</p>
             <h2 className="mt-3 text-2xl font-semibold text-slate-900">Últimas vendas</h2>
           </div>
           <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
             <ReceiptText className="h-5 w-5" />
           </div>
         </div>
+        {inlineError && <p className="mt-3 text-sm text-rose-600">{inlineError}</p>}
         <div className="mt-6 grid gap-3">
           {salesQuery.data?.map((sale) => (
-            <SaleRow key={sale.id} sale={sale} />
+            <SaleRow key={sale.id} sale={sale} onSave={(payload) => saveSaleField(sale, payload)} />
           ))}
           {!salesQuery.data?.length && <p className="text-sm text-slate-500">Nenhuma venda registrada.</p>}
         </div>
@@ -398,9 +426,17 @@ export function SalesWorkspace({ channel, title, subtitle, description }: SalesW
   )
 }
 
-function SaleRow({ sale }: { sale: SaleSummary }) {
+function SaleRow({ sale, onSave }: { sale: SaleSummary; onSave: (payload: Partial<SaleSummary>) => Promise<void> }) {
+  const statusOptions = [
+    { value: "draft", label: "Rascunho" },
+    { value: "confirmed", label: "Confirmada" },
+    { value: "cancelled", label: "Cancelada" }
+  ]
+  const statusLabel = statusOptions.find((item) => item.value === sale.status)?.label ?? sale.status
+  const canEditStatus = ["draft", "confirmed"].includes(sale.status)
+
   return (
-    <div className="rounded-[24px] border border-line bg-white p-5">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="font-semibold text-slate-900">{sale.sale_number}</p>
@@ -408,10 +444,29 @@ function SaleRow({ sale }: { sale: SaleSummary }) {
             {sale.customer_name || "Consumidor final"} • {formatDateTime(sale.issued_at)}
           </p>
           <p className="mt-1 text-sm text-slate-500">{sale.channel === "pos" ? "PDV" : "Venda assistida"}</p>
+          <p className="mt-2 text-sm text-slate-500">
+            Status{" "}
+            <InlineEdit
+              disabled={!canEditStatus}
+              type="select"
+              value={sale.status}
+              displayValue={statusLabel}
+              options={statusOptions}
+              onSave={(value) => onSave({ status: value })}
+            />
+          </p>
+          <p className="mt-1 text-sm text-slate-500">
+            Obs.{" "}
+            <InlineEdit
+              value={sale.notes ?? ""}
+              displayValue={sale.notes || "sem observação"}
+              onSave={(value) => onSave({ notes: value || null })}
+            />
+          </p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-semibold text-slate-900">{currency(sale.total_amount)}</p>
-          <Link className="mt-2 inline-flex text-sm font-medium text-teal-700 hover:text-teal-800" href={`/sales/${sale.id}`}>
+          <Link className="mt-2 inline-flex text-sm font-medium text-blue-700 hover:text-blue-700" href={`/sales/${sale.id}`}>
             Ver detalhes
           </Link>
         </div>

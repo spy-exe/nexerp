@@ -47,7 +47,7 @@ export default function ResetPasswordTokenPage(props: ResetPasswordTokenPageProp
 
   return (
     <Card className="w-full max-w-xl p-8">
-      <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal-700">Nova senha</p>
+      <p className="font-mono text-xs uppercase tracking-[0.3em] text-blue-700">Nova senha</p>
       <h1 className="mt-4 text-3xl font-semibold text-slate-900">Definir nova senha</h1>
       <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
         <div>

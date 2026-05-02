@@ -37,5 +37,11 @@ class StockBalanceResponse(BaseModel):
     product_name: str
     warehouse_id: UUID
     warehouse_name: str
+    warehouse_location: str | None = None
     quantity: Decimal
     min_stock: Decimal
+
+
+class WarehouseUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=255)
+    location: str | None = Field(default=None, max_length=255)
